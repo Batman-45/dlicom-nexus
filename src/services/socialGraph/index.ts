@@ -13,8 +13,8 @@ let productionProviderInstance: XApiSocialGraphProvider | null = null;
 
 export function getSocialGraphProvider(): SocialGraphProvider {
   const rawEnv = import.meta.env.VITE_USE_MOCK_DATA;
-  // Default to mock mode (free offline demo) unless explicitly configured as 'false'
-  const useMock = rawEnv === undefined ? true : rawEnv === 'true';
+  // Production default is REAL DATA; mock mode is only enabled when explicitly set to 'true'
+  const useMock = rawEnv === 'true';
 
   // Safe diagnostics — never logs credentials
   console.log('[provider] VITE_USE_MOCK_DATA =', JSON.stringify(rawEnv), '| useMock =', useMock);

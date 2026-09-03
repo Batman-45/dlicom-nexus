@@ -15,7 +15,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   const filters: { id: CircleFilter; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'all', label: 'All', icon: Sparkles },
-    { id: 'friends', label: 'Friends', icon: Users },
+    { id: 'friends', label: 'Interactions', icon: Users },
     { id: 'creators', label: 'Creators', icon: Palette },
     { id: 'builders', label: 'Builders', icon: Wrench },
     { id: 'communities', label: 'Communities', icon: Globe },

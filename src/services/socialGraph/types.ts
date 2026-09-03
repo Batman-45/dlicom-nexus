@@ -10,6 +10,7 @@ export interface SocialProfile {
   role?: string;
   followersCount?: number;
   followingCount?: number;
+  verified?: boolean;
   location?: string;
   joinedDate?: string;
   socials?: {
@@ -24,6 +25,9 @@ export interface SocialConnection extends SocialProfile {
   category?: FriendCategory;
   tags?: string[];
   connectionStrength?: number; // 0 to 100
+  interactionScore?: number; // 0 to 100
+  interactionCount?: number;
+  interactionTypes?: string[];
   mutualFriendsCount?: number;
   mutualFriendsList?: MutualFriendInfo[];
   isOnline?: boolean;

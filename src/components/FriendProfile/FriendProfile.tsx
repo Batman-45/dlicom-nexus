@@ -47,9 +47,9 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
   };
 
   const getTierLabel = (strength: number) => {
-    if (strength >= 85) return 'Inner Circle';
-    if (strength >= 60) return 'Active Collaborator';
-    return 'Extended Constellation';
+    if (strength >= 85) return 'High Interaction';
+    if (strength >= 60) return 'Frequent Interaction';
+    return 'Public Mention';
   };
 
   const categoryColor =
@@ -165,23 +165,28 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
               <h2 className="font-display font-bold text-lg text-white tracking-tight">
                 {user.displayName}
               </h2>
-              {isMockData || user.tags?.some((t) => t.toLowerCase().includes('demo') || t.toLowerCase().includes('simulated')) ? (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-medium">
+              {isMockData ? (
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   Demo Identity
                 </span>
-              ) : (
-                <ShieldCheck className="w-4 h-4 text-cyan-400" />
-              )}
+              ) : user.verified ? (
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-cyan-400" />
+                  Verified on X
+                </span>
+              ) : null}
             </div>
             <p className="text-xs font-mono text-cyan-400">@{user.username}</p>
           </div>
 
           {/* Bio statement */}
-          <div className="p-3 rounded-2xl bg-slate-900/60 border border-white/5 mb-3.5">
-            <p className="text-xs text-slate-300 leading-relaxed italic">
-              "{user.bio}"
-            </p>
-          </div>
+          {user.bio && (
+            <div className="p-3 rounded-2xl bg-slate-900/60 border border-white/5 mb-3.5">
+              <p className="text-xs text-slate-300 leading-relaxed italic">
+                "{user.bio}"
+              </p>
+            </div>
+          )}
 
           {/* Role and Meta pills */}
           <div className="flex flex-wrap items-center gap-1.5 mb-3.5">
@@ -207,16 +212,16 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
             </span>
           </div>
 
-          {/* Connection Strength Meter */}
+          {/* Interaction Score Meter */}
           {!isCenter && (
             <div className="p-3 rounded-2xl bg-gradient-to-br from-slate-900/90 to-slate-950/90 border border-cyan-500/20 mb-3.5">
               <div className="flex items-center justify-between text-xs mb-1.5">
                 <span className="text-slate-300 font-medium flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                  Connection Strength
+                  Interaction Score
                 </span>
                 <span className="font-mono font-bold text-cyan-300">
-                  {user.connectionStrength}%
+                  {user.interactionScore ?? user.connectionStrength}%
                 </span>
               </div>
 
@@ -224,12 +229,12 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
               <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden mb-1.5">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-500"
-                  style={{ width: `${user.connectionStrength}%` }}
+                  style={{ width: `${user.interactionScore ?? user.connectionStrength}%` }}
                 />
               </div>
 
               <div className="flex items-center justify-between text-[10px] text-slate-400">
-                <span>Tier: <strong className="text-white">{getTierLabel(user.connectionStrength)}</strong></span>
+                <span>Observed Level: <strong className="text-white">{getTierLabel(user.interactionScore ?? user.connectionStrength)}</strong></span>
                 <span>Orbit Distance: <strong className="text-cyan-400 font-mono">{user.orbitRadius}px</strong></span>
               </div>
             </div>
@@ -239,18 +244,22 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
           <div className="grid grid-cols-2 gap-2 mb-3.5">
             <div className="p-2.5 rounded-2xl bg-slate-900/40 border border-white/5 text-center">
               <span className="block font-display font-bold text-base text-white">
-                {user.friendsCount}
+                {isCenter && user.followersCount !== undefined
+                  ? user.followersCount.toLocaleString()
+                  : user.friendsCount}
               </span>
               <span className="text-[9px] text-slate-400 uppercase tracking-wider">
-                {isMockData ? 'Circle Connections' : 'Friends'}
+                {isCenter && user.followersCount !== undefined ? 'Followers' : 'X Interactions'}
               </span>
             </div>
             <div className="p-2.5 rounded-2xl bg-slate-900/40 border border-white/5 text-center">
               <span className="block font-display font-bold text-base text-cyan-400">
-                {user.mutualFriendsCount}
+                {isCenter && user.followingCount !== undefined
+                  ? user.followingCount.toLocaleString()
+                  : (user.interactionScore ?? user.connectionStrength)}
               </span>
               <span className="text-[9px] text-slate-400 uppercase tracking-wider">
-                {isMockData ? 'Mutuals in Circle' : 'Mutual Friends'}
+                {isCenter && user.followingCount !== undefined ? 'Following' : 'Interaction Score'}
               </span>
             </div>
           </div>
@@ -261,7 +270,7 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-cyan-400" />
-                  {isMockData ? 'Mutuals in Circle' : 'Mutual Friends'}
+                  Shared Interactions
                 </span>
                 <span className="text-[10px] text-slate-400 font-mono">
                   {user.mutualFriendsList.length} shown
@@ -369,13 +378,13 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
                 <button
                   onClick={() =>
                     isMockData
-                      ? alert(`[Demo Mode] Added @${user.username} to close circle tier (local preview).`)
-                      : alert(`Added @${user.username} to close circle tier`)
+                      ? alert(`[Demo Mode] Pinned @${user.username} (local preview).`)
+                      : alert(`Pinned @${user.username} to your local workspace`)
                   }
                   className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/15 text-white font-display font-semibold text-xs transition-all cursor-pointer"
                 >
                   <Heart className="w-3.5 h-3.5 text-pink-400" />
-                  <span>Close Friend</span>
+                  <span>Pin Contact</span>
                 </button>
               </div>
             ) : (

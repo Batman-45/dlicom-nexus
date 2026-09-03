@@ -20,12 +20,12 @@ export const NetworkStats: React.FC<NetworkStatsProps> = ({ stats }) => {
               {stats.totalFriends}
             </span>
             <span className="text-[9px] uppercase tracking-wider text-slate-400">
-              Circle Connections
+              X Interactions
             </span>
           </div>
         </div>
 
-        {/* Mutuals */}
+        {/* Mutuals / Interactions */}
         <div className="flex items-center gap-2 pr-3 border-r border-white/10">
           <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
             <Sparkles className="w-3.5 h-3.5" />
@@ -35,7 +35,7 @@ export const NetworkStats: React.FC<NetworkStatsProps> = ({ stats }) => {
               {stats.mutualConnections}
             </span>
             <span className="text-[9px] uppercase tracking-wider text-slate-400">
-              Mutuals in Circle
+              Activity Score
             </span>
           </div>
         </div>

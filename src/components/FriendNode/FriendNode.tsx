@@ -205,14 +205,14 @@ export const FriendNode: React.FC<FriendNodeProps> = ({
           <div className="flex items-center justify-between text-[10px] pt-1.5 border-t border-white/10 text-slate-400">
             <span className="flex items-center gap-1">
               <Users className="w-3 h-3 text-slate-400" />
-              {user.mutualFriendsCount} in circle
+              {user.mutualFriendsCount} interactions
             </span>
             <span
-              className="flex items-center gap-1 font-semibold"
+              className="flex items-center gap-1 font-semibold font-mono"
               style={{ color: user.highlightColor || categoryColor }}
             >
               <Sparkles className="w-3 h-3" />
-              {user.connectionStrength}% affinity
+              Score {user.interactionScore ?? user.connectionStrength}
             </span>
           </div>
         </div>

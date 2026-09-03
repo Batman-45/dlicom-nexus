@@ -37,6 +37,11 @@ export interface DlicomUser {
   mutualFriendsCount: number;
   mutualFriendsList: MutualFriendInfo[];
   connectionStrength: number; // 0 to 100
+  interactionScore?: number; // 0 to 100 observed score
+  interactionTypes?: string[];
+  followersCount?: number;
+  followingCount?: number;
+  verified?: boolean;
   isOnline: boolean;
   lastActive?: string;
   joinedDate: string;

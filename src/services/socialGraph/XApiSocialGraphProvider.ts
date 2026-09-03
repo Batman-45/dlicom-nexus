@@ -2,64 +2,111 @@ import type { SocialGraphProvider, SocialProfile, SocialConnection, SocialGraphR
 import { SocialGraphError } from './types';
 
 export class XApiSocialGraphProvider implements SocialGraphProvider {
-  readonly mode = 'production';
-  private readonly proxyUrl = import.meta.env.VITE_API_PROXY_URL;
+  readonly mode = 'production' as const;
+  private readonly proxyUrl = import.meta.env.VITE_API_PROXY_URL || '';
 
-  async getProfile(username: string): Promise<SocialProfile> {
-    const data = await this.fetchData(username);
+  async getProfile(rawUsername: string): Promise<SocialProfile> {
+    const data = await this.fetchData(rawUsername);
     return this.mapProfile(data.profile);
   }
 
-  async getConnections(username: string): Promise<SocialConnection[]> {
-    const data = await this.fetchData(username);
-    return [...data.following, ...data.followers].map(this.mapConnection);
+  async getConnections(rawUsername: string): Promise<SocialConnection[]> {
+    const data = await this.fetchData(rawUsername);
+    return (data.connections || []).map(this.mapConnection);
   }
 
-  async getGraph(username: string): Promise<SocialGraphResult> {
-    const data = await this.fetchData(username);
+  async getGraph(rawUsername: string): Promise<SocialGraphResult> {
+    const data = await this.fetchData(rawUsername);
     return {
       profile: this.mapProfile(data.profile),
-      connections: [...data.following, ...data.followers].map(this.mapConnection),
-      fetchedAt: new Date().toISOString(),
+      connections: (data.connections || []).map(this.mapConnection),
+      fetchedAt: data.fetchedAt || new Date().toISOString(),
       isMockData: false,
     };
   }
 
-  private async fetchData(username: string) {
+  private async fetchData(rawUsername: string) {
+    const username = rawUsername.replace(/^@+/, '').trim();
+    if (!username) {
+      throw new SocialGraphError('Please enter a valid X username.', 'INVALID_HANDLE');
+    }
+
     try {
-      const response = await fetch(`${this.proxyUrl}/api/proxy/x/users/${username}/connections`);
+      const basePath = this.proxyUrl ? this.proxyUrl.replace(/\/+$/, '') : '';
+      const endpoint = `${basePath}/api/x/users/${encodeURIComponent(username)}/connections`;
+      const response = await fetch(endpoint);
       if (!response.ok) {
-        if (response.status === 404) throw new SocialGraphError('User not found', 'NOT_FOUND');
-        if (response.status === 402) throw new SocialGraphError('X API credits depleted — upgrade your X Developer plan to Basic or higher', 'UNAVAILABLE');
-        if (response.status === 403) throw new SocialGraphError('Unavailable', 'UNAVAILABLE');
-        if (response.status === 429) throw new SocialGraphError('Rate limited by X API — try again in a few minutes', 'RATE_LIMITED');
-        if (response.status === 401) throw new SocialGraphError('X API authentication failed — check the Bearer token in server/.env', 'UNAVAILABLE');
-        throw new SocialGraphError('API Error', 'NETWORK_ERROR');
+        let errJson = null;
+        try {
+          errJson = await response.json();
+        } catch {
+          // ignore parse error
+        }
+        const message = errJson?.error || 'Unable to build your Circle right now.';
+
+        if (response.status === 404) {
+          throw new SocialGraphError(message || "Couldn't find that X account.", 'NOT_FOUND');
+        }
+        if (response.status === 403) {
+          throw new SocialGraphError(message || 'This X account is protected or unavailable.', 'UNAVAILABLE');
+        }
+        if (response.status === 429) {
+          throw new SocialGraphError(message || 'Rate limit reached on public X data. Please try again in a few moments.', 'RATE_LIMITED');
+        }
+        throw new SocialGraphError(message, 'NETWORK_ERROR');
       }
       return await response.json();
     } catch (error) {
       if (error instanceof SocialGraphError) throw error;
-      throw new SocialGraphError('Failed to fetch data', 'NETWORK_ERROR');
+      throw new SocialGraphError('Could not reach Dlicom proxy server. Ensure the server is running.', 'NETWORK_ERROR');
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapProfile(profile: any): SocialProfile {
     return {
-      id: profile.id,
+      id: profile.id || `x-${profile.username}`,
       username: profile.username,
-      displayName: profile.name,
-      avatar: profile.profile_image_url,
-      bio: profile.description || '',
+      displayName: profile.displayName || profile.name || profile.username,
+      avatar: profile.avatar || profile.profile_image_url || `https://unavatar.io/x/${encodeURIComponent(profile.username)}`,
+      banner: profile.banner || profile.profile_banner_url,
+      bio: profile.bio || profile.description || '',
+      followersCount: profile.followersCount ?? profile.followers_count,
+      followingCount: profile.followingCount ?? profile.friends_count,
+      verified: !!(profile.verified || profile.is_blue_verified),
+      location: profile.location,
+      joinedDate: profile.joinedDate || profile.createdDate,
     };
   }
 
-  private mapConnection(connection: any): SocialConnection {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private mapConnection(conn: any): SocialConnection {
+    const types: string[] = conn.interactionTypes || [];
+    const score = conn.interactionScore ?? conn.connectionStrength ?? 50;
+    const count = conn.interactionCount || 1;
+
     return {
-      id: connection.id,
-      username: connection.username,
-      displayName: connection.name,
-      avatar: connection.profile_image_url,
-      bio: connection.description || '',
+      id: conn.id || `conn-${conn.username}`,
+      username: conn.username,
+      displayName: conn.displayName || conn.name || conn.username,
+      avatar: conn.avatar || conn.profile_image_url || `https://unavatar.io/x/${encodeURIComponent(conn.username)}`,
+      bio: conn.bio || (types.length ? `Observed X interactions: ${types.join(' · ')}` : ''),
+      connectionStrength: score,
+      interactionScore: score,
+      interactionCount: count,
+      interactionTypes: types,
+      mutualFriendsCount: count,
+      role: conn.role || (types.length ? `Interacted via ${types.join(' · ')}` : 'X Interaction'),
+      category: conn.category || (types.includes('reply') ? 'friends' : types.includes('quote') ? 'creators' : 'builders'),
+      tags: conn.tags || (types.length ? types.map((t: string) => `X ${t}`) : ['X Interaction']),
+      recentActivity: conn.recentActivity || (types.length ? [
+        {
+          id: `act-${conn.username}`,
+          action: `Active in recent interactions (${types.join(' · ')})`,
+          timestamp: 'Recent',
+          iconType: 'spark',
+        }
+      ] : undefined),
     };
   }
 }

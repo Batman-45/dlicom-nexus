@@ -25,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const filters: { id: CircleFilter; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'all', label: 'All', icon: Sparkles },
-    { id: 'friends', label: 'Friends', icon: Users },
+    { id: 'friends', label: 'Interactions', icon: Users },
     { id: 'creators', label: 'Creators', icon: Palette },
     { id: 'builders', label: 'Builders', icon: Wrench },
     { id: 'communities', label: 'Guilds', icon: Globe },
@@ -79,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search friends, roles, tags..."
+              placeholder="Search interactions, tags, handles..."
               className="w-full pl-9 pr-14 py-1.5 rounded-full text-xs bg-slate-950/80 hover:bg-slate-900/90 border border-white/10 focus:border-cyan-400/50 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 backdrop-blur-xl transition-all shadow-inner"
             />
             {searchQuery ? (
