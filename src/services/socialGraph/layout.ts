@@ -174,5 +174,8 @@ export function transformSocialGraphToConstellation(graph: SocialGraphResult): T
     friends,
     stats,
     isMockData,
+    dataStatus: graph.dataStatus,
+    reason: graph.reason,
   };
 }
+

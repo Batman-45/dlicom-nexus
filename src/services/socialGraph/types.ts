@@ -42,6 +42,8 @@ export interface SocialGraphResult {
   stats?: NetworkStatsData;
   isMockData?: boolean;
   isStale?: boolean;
+  dataStatus?: string;
+  reason?: string;
   fetchedAt: string;
 }
 
@@ -68,4 +70,6 @@ export interface TransformedConstellationData {
   friends: DlicomUser[];
   stats: NetworkStatsData;
   isMockData: boolean;
+  dataStatus?: string;
+  reason?: string;
 }

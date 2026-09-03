@@ -73,7 +73,9 @@ export async function getOrFetchUserData(cleanUsername) {
   // STEP 1: Check persistent cache (and memory L1)
   const memoryHit = freshCache.get(cacheKey);
   if (memoryHit && !inCooldown) {
-    return { data: memoryHit, isStale: false, cacheStatus: 'PERSISTENT-HIT' };
+    if (Array.isArray(memoryHit.connections) && memoryHit.connections.length > 0) {
+      return { data: memoryHit, isStale: false, cacheStatus: 'PERSISTENT-HIT' };
+    }
   }
 
   // Query persistent Supabase cache
@@ -82,17 +84,23 @@ export async function getOrFetchUserData(cleanUsername) {
   if (dbRecord) {
     const expiresTime = new Date(dbRecord.expires_at).getTime();
     const isFresh = now < expiresTime;
+    const hasConnections = Array.isArray(dbRecord.connections_json) && dbRecord.connections_json.length > 0;
 
     const formattedData = {
       profile: dbRecord.profile_json,
-      connections: dbRecord.connections_json,
+      connections: dbRecord.connections_json || [],
       isMockData: false,
       isStale: false,
       fetchedAt: dbRecord.fetched_at,
+      dataStatus: dbRecord.profile_json?.dataStatus || (hasConnections ? 'OK' : 'NO_PUBLIC_INTERACTIONS'),
+      reason: dbRecord.profile_json?.reason || (hasConnections ? null : 'No usable public X interactions were available from the syndication source.'),
     };
 
-    if (isFresh) {
-      // Data is fresh (< 24h): return immediately without calling X
+    // SAFE CACHE RULE:
+    // Only serve immediately from cache (PERSISTENT-HIT) if data is fresh AND has real connections!
+    // If the record was previously empty, do NOT permanently lock in the empty result.
+    // Instead, allow revalidation against X (unless in rate-limit cooldown).
+    if (isFresh && hasConnections) {
       const remainingTtlSeconds = Math.max(60, Math.floor((expiresTime - now) / 1000));
       freshCache.set(cacheKey, formattedData, remainingTtlSeconds);
       return { data: formattedData, isStale: false, cacheStatus: 'PERSISTENT-HIT' };
@@ -135,15 +143,28 @@ export async function getOrFetchUserData(cleanUsername) {
   const fetchPromise = (async () => {
     try {
       const result = await fetchXPublicProfile(cleanUsername);
+      const hasConnections = Array.isArray(result.connections) && result.connections.length > 0;
 
-      // Refresh succeeded: persist in Supabase with 24-hour expiration
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      await upsertCachedRecord(cleanUsername, result.profile, result.connections, expiresAt);
+      // When saving to Supabase:
+      // Valid non-empty real data is saved with full 24h TTL.
+      // Truthful empty results (NO_PUBLIC_INTERACTIONS) are saved with a short TTL (15m)
+      // to avoid hammering X while allowing revalidation without 24h lock-in.
+      const ttlMs = hasConnections ? 24 * 60 * 60 * 1000 : 15 * 60 * 1000;
+      const expiresAt = new Date(Date.now() + ttlMs);
 
-      // Update in-memory L1 cache (24h)
-      freshCache.set(cacheKey, result, 86400);
+      const profileToSave = {
+        ...result.profile,
+        dataStatus: result.dataStatus,
+        reason: result.reason,
+      };
+
+      await upsertCachedRecord(cleanUsername, profileToSave, result.connections, expiresAt);
+
+      // Update in-memory L1 cache
+      const memoryTtl = hasConnections ? 86400 : 900;
+      freshCache.set(cacheKey, result, memoryTtl);
       memoryStaleCache.set(cacheKey, {
-        profile_json: result.profile,
+        profile_json: profileToSave,
         connections_json: result.connections,
         fetched_at: result.fetchedAt,
       });
@@ -162,7 +183,7 @@ export async function getOrFetchUserData(cleanUsername) {
         rateLimitCooldowns.set(cacheKey, Date.now());
       }
 
-      // STEP 3: If X refresh fails with 429 or 5xx AND stale real data exists:
+      // STEP 3: If X refresh fails with 429 or 5xx AND stale candidate exists:
       const isRateOrServerFailure = err.status === 429 || (err.status >= 500 && err.status < 600);
       if (isRateOrServerFailure && staleCandidate) {
         console.warn(`[cache] Upstream status ${err.status} for @${cleanUsername}. Serving STALE persistent data.`);
@@ -173,9 +194,11 @@ export async function getOrFetchUserData(cleanUsername) {
 
         const staleData = {
           profile: staleCandidate.profile_json,
-          connections: staleCandidate.connections_json,
+          connections: staleCandidate.connections_json || [],
           isMockData: false,
           isStale: true,
+          dataStatus: staleCandidate.profile_json?.dataStatus || (staleCandidate.connections_json?.length > 0 ? 'OK' : 'NO_PUBLIC_INTERACTIONS'),
+          reason: staleCandidate.profile_json?.reason || (staleCandidate.connections_json?.length > 0 ? null : 'No usable public X interactions were available from the syndication source.'),
           fetchedAt: staleCandidate.fetched_at,
         };
 
@@ -198,3 +221,4 @@ export async function getOrFetchUserData(cleanUsername) {
   inFlightRequests.set(cacheKey, fetchPromise);
   return fetchPromise;
 }
+

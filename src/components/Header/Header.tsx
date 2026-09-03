@@ -12,6 +12,8 @@ interface HeaderProps {
   onChangeCircle?: () => void;
   isMockData?: boolean;
   isStaleData?: boolean;
+  dataStatus?: string;
+  dataReason?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,6 +26,8 @@ export const Header: React.FC<HeaderProps> = ({
   onChangeCircle,
   isMockData,
   isStaleData,
+  dataStatus,
+  dataReason,
 }) => {
   const filters: { id: CircleFilter; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'all', label: 'All', icon: Sparkles },
@@ -59,6 +63,15 @@ export const Header: React.FC<HeaderProps> = ({
                 Showing recently cached X activity
               </span>
             )}
+            {dataStatus === 'NO_PUBLIC_INTERACTIONS' && !isMockData && (
+              <span
+                className="text-[9px] font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                title={dataReason || 'No usable public X interactions were available from the syndication source.'}
+              >
+                No public X interactions available
+              </span>
+            )}
+
             {onChangeCircle && (
               <button
                 onClick={onChangeCircle}

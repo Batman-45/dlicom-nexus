@@ -1,12 +1,178 @@
 import https from 'https';
 
 /**
+ * Normalizes user object across standard and GraphQL/legacy Twitter syndication structures.
+ *
+ * @param {object|null} rawUser
+ * @returns {object|null}
+ */
+export function normalizeUser(rawUser) {
+  if (!rawUser) return null;
+  const legacy = rawUser.legacy || {};
+  return {
+    id_str: rawUser.id_str || (rawUser.id ? String(rawUser.id) : legacy.id_str) || null,
+    screen_name: rawUser.screen_name || rawUser.username || legacy.screen_name || null,
+    name: rawUser.name || rawUser.displayName || legacy.name || null,
+    profile_image_url_https: rawUser.profile_image_url_https || rawUser.profile_image_url || legacy.profile_image_url_https || null,
+    profile_banner_url: rawUser.profile_banner_url || legacy.profile_banner_url || null,
+    description: rawUser.description || rawUser.bio || legacy.description || '',
+    followers_count: rawUser.followers_count ?? rawUser.followersCount ?? legacy.followers_count ?? 0,
+    friends_count: rawUser.friends_count ?? rawUser.friendsCount ?? rawUser.followingCount ?? legacy.friends_count ?? 0,
+    verified: !!(rawUser.verified || rawUser.is_blue_verified || legacy.verified || legacy.is_blue_verified),
+    created_at: rawUser.created_at || rawUser.createdAt || legacy.created_at || null,
+  };
+}
+
+/**
+ * Extracts all entries from diverse timeline shapes (entries array, GraphQL instructions, raw items).
+ *
+ * @param {object} pageProps
+ * @returns {Array}
+ */
+export function extractTimelineEntries(pageProps) {
+  if (!pageProps) return [];
+  const collected = [];
+
+  // 1. Standard entries array
+  if (Array.isArray(pageProps.timeline?.entries)) {
+    collected.push(...pageProps.timeline.entries);
+  }
+
+  // 2. Twitter GraphQL instructions structure (TimelineAddEntries / TimelinePinEntry)
+  const instructions = pageProps.timeline?.instructions ||
+                       pageProps.user?.timeline?.timeline?.instructions ||
+                       pageProps.instructions;
+  if (Array.isArray(instructions)) {
+    for (const inst of instructions) {
+      if (Array.isArray(inst?.entries)) {
+        collected.push(...inst.entries);
+      } else if (inst?.entry) {
+        collected.push(inst.entry);
+      } else if (inst?.item) {
+        collected.push(inst.item);
+      }
+    }
+  }
+
+  // 3. Alternative timeline array properties (items, tweets, raw)
+  if (Array.isArray(pageProps.timeline?.items)) {
+    collected.push(...pageProps.timeline.items);
+  }
+  if (Array.isArray(pageProps.timeline?.tweets)) {
+    collected.push(...pageProps.timeline.tweets);
+  }
+  if (Array.isArray(pageProps.timeline?.raw)) {
+    collected.push(...pageProps.timeline.raw);
+  }
+  if (Array.isArray(pageProps.tweets)) {
+    collected.push(...pageProps.tweets);
+  } else if (pageProps.tweets && typeof pageProps.tweets === 'object') {
+    collected.push(...Object.values(pageProps.tweets));
+  }
+
+  // 4. Pinned tweet
+  if (pageProps.timeline?.pinnedTweet) {
+    collected.unshift({ content: { tweet: pageProps.timeline.pinnedTweet } });
+  } else if (pageProps.pinnedTweet) {
+    collected.unshift({ content: { tweet: pageProps.pinnedTweet } });
+  }
+
+  return collected;
+}
+
+/**
+ * Resolves a tweet object from an entry item across varying syndication layouts.
+ *
+ * @param {object} entry
+ * @returns {object|null}
+ */
+export function extractTweetFromEntry(entry) {
+  if (!entry) return null;
+  // Direct content tweet
+  if (entry.content?.tweet) return entry.content.tweet;
+  // GraphQL tweet result
+  if (entry.content?.itemContent?.tweet_results?.result?.tweet) {
+    return entry.content.itemContent.tweet_results.result.tweet;
+  }
+  if (entry.content?.itemContent?.tweet_results?.result) {
+    return entry.content.itemContent.tweet_results.result;
+  }
+  // Nested item content
+  if (entry.content?.item?.content?.tweet) return entry.content.item.content.tweet;
+  if (entry.content?.item?.tweet) return entry.content.item.tweet;
+  if (entry.tweet) return entry.tweet;
+  if (entry.itemContent?.tweet_results?.result?.tweet) {
+    return entry.itemContent.tweet_results.result.tweet;
+  }
+  if (entry.itemContent?.tweet_results?.result) {
+    return entry.itemContent.tweet_results.result;
+  }
+  // If entry itself is already a tweet object
+  if (entry.id_str || entry.full_text || entry.text || entry.legacy) return entry;
+  return null;
+}
+
+/**
+ * Normalizes tweet fields (replies, mentions, quotes, retweets) into a consistent schema.
+ *
+ * @param {object} rawTweet
+ * @returns {object|null}
+ */
+export function normalizeTweet(rawTweet) {
+  if (!rawTweet) return null;
+  const legacy = rawTweet.legacy || {};
+
+  const user = rawTweet.user ||
+               rawTweet.core?.user_results?.result?.legacy ||
+               rawTweet.core?.user_results?.result ||
+               rawTweet.author ||
+               null;
+
+  const quoted = rawTweet.quoted_tweet ||
+                 rawTweet.quoted_status ||
+                 rawTweet.quoted_status_result?.result?.tweet ||
+                 rawTweet.quoted_status_result?.result ||
+                 legacy.quoted_status ||
+                 null;
+
+  const retweeted = rawTweet.retweeted_status ||
+                    rawTweet.retweeted_status_result?.result?.tweet ||
+                    rawTweet.retweeted_status_result?.result ||
+                    legacy.retweeted_status ||
+                    null;
+
+  return {
+    id_str: rawTweet.id_str || (rawTweet.id ? String(rawTweet.id) : legacy.id_str) || null,
+    text: rawTweet.full_text || rawTweet.text || legacy.full_text || legacy.text || '',
+    user: normalizeUser(user),
+    in_reply_to_screen_name: rawTweet.in_reply_to_screen_name || legacy.in_reply_to_screen_name || null,
+    in_reply_to_user_id_str: rawTweet.in_reply_to_user_id_str || legacy.in_reply_to_user_id_str || null,
+    entities: rawTweet.entities || legacy.entities || {},
+    quoted_tweet: quoted ? {
+      ...quoted,
+      user: normalizeUser(quoted.user || quoted.core?.user_results?.result?.legacy || quoted.core?.user_results?.result)
+    } : null,
+    retweeted_status: retweeted ? {
+      ...retweeted,
+      user: normalizeUser(retweeted.user || retweeted.core?.user_results?.result?.legacy || retweeted.core?.user_results?.result)
+    } : null,
+  };
+}
+
+/**
  * Shared serverless extraction engine for public X profile and real interactions.
  * Uses official public syndication infrastructure (syndication.twitter.com).
  * Zero Bearer Tokens, zero paid API keys, zero authentication bypass.
  *
  * @param {string} rawUsername
- * @returns {Promise<{ profile: object, connections: Array, isMockData: boolean, fetchedAt: string }>}
+ * @returns {Promise<{
+ *   profile: object,
+ *   connections: Array,
+ *   isMockData: boolean,
+ *   dataStatus: 'OK' | 'NO_PUBLIC_INTERACTIONS',
+ *   reason: string | null,
+ *   fetchedAt: string
+ * }>}
  */
 export async function fetchXPublicProfile(rawUsername) {
   const clean = (rawUsername || '').replace(/^@+/, '').trim();
@@ -35,7 +201,16 @@ export async function fetchXPublicProfile(rawUsername) {
       if (res.statusCode === 429) {
         const err = new Error('X public data is temporarily rate-limited.');
         err.status = 429;
-        err.retryAfter = 60;
+        const resetHeader = res.headers['x-rate-limit-reset'];
+        if (resetHeader) {
+          const resetTimestamp = parseInt(resetHeader, 10);
+          if (!isNaN(resetTimestamp)) {
+            err.retryAfter = Math.max(1, resetTimestamp - Math.floor(Date.now() / 1000));
+          }
+        }
+        if (!err.retryAfter) {
+          err.retryAfter = 60;
+        }
         return reject(err);
       }
       if (res.statusCode === 403) {
@@ -62,32 +237,47 @@ export async function fetchXPublicProfile(rawUsername) {
 
           const json = JSON.parse(match[1]);
           const pageProps = json.props?.pageProps;
-          const entries = pageProps?.timeline?.entries || [];
+          const rawEntries = extractTimelineEntries(pageProps);
 
           // 1. Build registry of verified X users from payload with genuine pbs.twimg.com avatars
           const knownUsersRegistry = new Map();
 
           const registerUser = (userObj) => {
-            if (!userObj?.screen_name) return;
-            const key = userObj.screen_name.toLowerCase();
+            const normalized = normalizeUser(userObj);
+            if (!normalized?.screen_name) return;
+            const key = normalized.screen_name.toLowerCase();
             const existing = knownUsersRegistry.get(key);
-            if (!existing || (!existing.profile_image_url_https && userObj.profile_image_url_https)) {
-              knownUsersRegistry.set(key, userObj);
+            if (!existing || (!existing.profile_image_url_https && normalized.profile_image_url_https)) {
+              knownUsersRegistry.set(key, normalized);
             }
           };
 
-          for (const entry of entries) {
-            const tweet = entry.content?.tweet;
+          const normalizedTweets = [];
+          for (const entry of rawEntries) {
+            const tweet = extractTweetFromEntry(entry);
             if (!tweet) continue;
-            if (tweet.user) registerUser(tweet.user);
-            if (tweet.quoted_tweet?.user) registerUser(tweet.quoted_tweet.user);
-            if (tweet.retweeted_status?.user) registerUser(tweet.retweeted_status.user);
+            const normTweet = normalizeTweet(tweet);
+            if (!normTweet) continue;
+            normalizedTweets.push(normTweet);
+
+            if (normTweet.user) registerUser(normTweet.user);
+            if (normTweet.quoted_tweet?.user) registerUser(normTweet.quoted_tweet.user);
+            if (normTweet.retweeted_status?.user) registerUser(normTweet.retweeted_status.user);
           }
 
-          // 2. Locate primary profile
+          // 2. Locate primary profile across all candidate locations
           let rawUser = knownUsersRegistry.get(clean.toLowerCase()) || null;
-          if (!rawUser && entries.length > 0) {
-            rawUser = entries[0].content?.tweet?.user;
+          if (!rawUser && pageProps?.user) {
+            rawUser = normalizeUser(pageProps.user);
+          }
+          if (!rawUser && pageProps?.userProfile) {
+            rawUser = normalizeUser(pageProps.userProfile);
+          }
+          if (!rawUser && pageProps?.author) {
+            rawUser = normalizeUser(pageProps.author);
+          }
+          if (!rawUser && normalizedTweets.length > 0 && normalizedTweets[0].user) {
+            rawUser = normalizedTweets[0].user;
           }
 
           const headerScreenName = pageProps?.headerProps?.screenName;
@@ -176,10 +366,7 @@ export async function fetchXPublicProfile(rawUsername) {
             interactionMap.set(key, existing);
           };
 
-          for (const entry of entries) {
-            const tweet = entry.content?.tweet;
-            if (!tweet) continue;
-
+          for (const tweet of normalizedTweets) {
             // Reply: weight 3
             if (tweet.in_reply_to_screen_name) {
               recordInteraction(
@@ -196,15 +383,10 @@ export async function fetchXPublicProfile(rawUsername) {
             // User mentions in entities: weight 2
             if (tweet.entities?.user_mentions) {
               for (const m of tweet.entities.user_mentions) {
-                recordInteraction(
-                  m.screen_name,
-                  m.name,
-                  null,
-                  null,
-                  m.id_str,
-                  2,
-                  'mention'
-                );
+                const screenName = m.screen_name || m.screenName;
+                const name = m.name;
+                const idStr = m.id_str || (m.id ? String(m.id) : null);
+                recordInteraction(screenName, name, null, null, idStr, 2, 'mention');
               }
             }
 
@@ -237,7 +419,7 @@ export async function fetchXPublicProfile(rawUsername) {
             }
 
             // Text @mentions: weight 1
-            const text = tweet.full_text || tweet.text || '';
+            const text = tweet.text || '';
             const matches = text.match(/@([a-zA-Z0-9_]{1,25})/g) || [];
             for (const m of matches) {
               recordInteraction(m.slice(1), null, null, null, null, 1, 'mention');
@@ -267,10 +449,17 @@ export async function fetchXPublicProfile(rawUsername) {
             };
           });
 
+          const dataStatus = connections.length > 0 ? 'OK' : 'NO_PUBLIC_INTERACTIONS';
+          const reason = connections.length > 0
+            ? null
+            : 'No usable public X interactions were available from the syndication source.';
+
           resolve({
             profile,
             connections,
             isMockData: false,
+            dataStatus,
+            reason,
             fetchedAt: new Date().toISOString()
           });
         } catch {
@@ -295,3 +484,4 @@ export async function fetchXPublicProfile(rawUsername) {
     });
   });
 }
+

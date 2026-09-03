@@ -38,6 +38,8 @@ export const CirclePage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showOrbits, setShowOrbits] = useState<boolean>(true);
   const [isStaleData, setIsStaleData] = useState<boolean>(false);
+  const [dataStatus, setDataStatus] = useState<string | undefined>(undefined);
+  const [dataReason, setDataReason] = useState<string | undefined>(undefined);
 
   // Viewport Transform State
   const [transform, setTransform] = useState<ViewportTransform>({
@@ -71,6 +73,8 @@ export const CirclePage: React.FC = () => {
       setNetworkStats(transformed.stats);
       setIsMockData(transformed.isMockData);
       setIsStaleData(!!graphResult.isStale);
+      setDataStatus(transformed.dataStatus);
+      setDataReason(transformed.reason);
 
       // Reset view to center and open constellation
       setSelectedUser(null);
@@ -100,6 +104,8 @@ export const CirclePage: React.FC = () => {
       setNetworkStats(transformed.stats);
       setIsMockData(true);
       setIsStaleData(false);
+      setDataStatus('OK');
+      setDataReason(undefined);
 
       setSelectedUser(null);
       setTransform({ x: 0, y: 0, scale: 0.95 });
@@ -109,6 +115,7 @@ export const CirclePage: React.FC = () => {
       setPageState('error');
     }
   }, []);
+
 
   // Return to Onboarding to change user
   const handleChangeCircle = useCallback(() => {
@@ -288,7 +295,21 @@ export const CirclePage: React.FC = () => {
         onChangeCircle={handleChangeCircle}
         isMockData={isMockData}
         isStaleData={isStaleData}
+        dataStatus={dataStatus}
+        dataReason={dataReason}
       />
+
+      {/* Legitimate Zero Interaction Feedback Pill */}
+      {friends.length === 0 && !isMockData && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-4">
+          <div className="glass-panel px-4 py-2 rounded-full border border-amber-500/25 bg-slate-950/85 shadow-2xl flex items-center gap-2 pointer-events-auto backdrop-blur-md">
+            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+            <p className="text-xs text-slate-300 font-sans">
+              No public X interactions available for <span className="font-semibold text-white">@{currentUser.username}</span> in syndication.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Hero Interactive Friend Constellation Canvas */}
       <main className="w-full h-full sm:pl-16 md:pl-20">
@@ -303,6 +324,7 @@ export const CirclePage: React.FC = () => {
           onTransformChange={setTransform}
         />
       </main>
+
 
       {/* Bottom Left Network Statistics HUD */}
       <NetworkStats stats={networkStats} />

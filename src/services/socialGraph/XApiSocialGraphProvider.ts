@@ -16,14 +16,18 @@ export class XApiSocialGraphProvider implements SocialGraphProvider {
 
   async getGraph(rawUsername: string): Promise<SocialGraphResult> {
     const data = await this.fetchData(rawUsername);
+    const hasConnections = Array.isArray(data.connections) && data.connections.length > 0;
     return {
       profile: this.mapProfile(data.profile),
       connections: (data.connections || []).map(this.mapConnection),
+      dataStatus: data.dataStatus || (hasConnections ? 'OK' : 'NO_PUBLIC_INTERACTIONS'),
+      reason: data.reason || (hasConnections ? undefined : 'No usable public X interactions were available from the syndication source.'),
       fetchedAt: data.fetchedAt || new Date().toISOString(),
       isMockData: false,
       isStale: !!data.isStale,
     };
   }
+
 
   private async fetchData(rawUsername: string) {
     const username = rawUsername.replace(/^@+/, '').trim();
