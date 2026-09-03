@@ -3,7 +3,6 @@ import { SocialGraphError } from './types';
 
 export class XApiSocialGraphProvider implements SocialGraphProvider {
   readonly mode = 'production' as const;
-  private readonly proxyUrl = import.meta.env.VITE_API_PROXY_URL || '';
 
   async getProfile(rawUsername: string): Promise<SocialProfile> {
     const data = await this.fetchData(rawUsername);
@@ -32,8 +31,8 @@ export class XApiSocialGraphProvider implements SocialGraphProvider {
     }
 
     try {
-      const basePath = this.proxyUrl ? this.proxyUrl.replace(/\/+$/, '') : '';
-      const endpoint = `${basePath}/api/x/users/${encodeURIComponent(username)}/connections`;
+      // Always use relative same-origin endpoint in production and development (handled by Vite dev proxy)
+      const endpoint = `/api/x/users/${encodeURIComponent(username)}/connections`;
       const response = await fetch(endpoint);
       if (!response.ok) {
         let errJson = null;
@@ -58,7 +57,7 @@ export class XApiSocialGraphProvider implements SocialGraphProvider {
       return await response.json();
     } catch (error) {
       if (error instanceof SocialGraphError) throw error;
-      throw new SocialGraphError('Could not reach Dlicom proxy server. Ensure the server is running.', 'NETWORK_ERROR');
+      throw new SocialGraphError('Unable to reach Dlicom API. Please check your connection.', 'NETWORK_ERROR');
     }
   }
 
