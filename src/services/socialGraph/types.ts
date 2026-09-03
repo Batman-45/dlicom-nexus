@@ -41,6 +41,7 @@ export interface SocialGraphResult {
   connections: SocialConnection[];
   stats?: NetworkStatsData;
   isMockData?: boolean;
+  isStale?: boolean;
   fetchedAt: string;
 }
 

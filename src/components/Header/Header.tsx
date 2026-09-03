@@ -11,6 +11,7 @@ interface HeaderProps {
   totalVisible: number;
   onChangeCircle?: () => void;
   isMockData?: boolean;
+  isStaleData?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -22,6 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
   totalVisible,
   onChangeCircle,
   isMockData,
+  isStaleData,
 }) => {
   const filters: { id: CircleFilter; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'all', label: 'All', icon: Sparkles },
@@ -50,6 +52,11 @@ export const Header: React.FC<HeaderProps> = ({
             {isMockData && (
               <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
                 DEMO / MOCK GRAPH
+              </span>
+            )}
+            {isStaleData && !isMockData && (
+              <span className="text-[9px] font-mono font-semibold px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                Showing recently cached X activity
               </span>
             )}
             {onChangeCircle && (

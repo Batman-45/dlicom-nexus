@@ -1,10 +1,12 @@
 import express from 'express';
 import cors from 'cors';
-import NodeCache from 'node-cache';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { fetchXPublicProfile } from '../api/_lib/xPublic.js';
+
+import { getOrFetchUserData, normalizeUsername } from '../api/_lib/cache.js';
+import { getSupabaseStatus } from '../api/_lib/supabase.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,8 +15,6 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const port = process.env.PORT || 3000;
-
-const cache = new NodeCache({ stdTTL: 600, checkperiod: 60 });
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)
@@ -41,7 +41,8 @@ app.get(['/api/health', '/health'], (req, res) => {
   res.setHeader('Cache-Control', 'no-store, max-age=0');
   res.json({
     status: 'ok',
-    service: 'dlicom-circle'
+    service: 'dlicom-circle',
+    persistentCache: getSupabaseStatus(),
   });
 });
 
@@ -53,30 +54,43 @@ app.get('/test', (req, res) => {
 
 async function handleConnections(req, res) {
   const { username } = req.params;
-  const cleanUsername = (username || '').replace(/^@+/, '').trim();
+  const cleanUsername = normalizeUsername(username);
 
   if (!cleanUsername || !/^[a-zA-Z0-9_]{1,25}$/.test(cleanUsername)) {
     return res.status(400).json({ error: 'Please enter a valid X username (1-25 characters).' });
   }
 
-  const cacheKey = `user_${cleanUsername.toLowerCase()}`;
-  const cached = cache.get(cacheKey);
-  if (cached) {
-    console.log(`[local-proxy] Cache HIT for @${cleanUsername} (${cached.connections.length} real interactions)`);
-    res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=300');
-    return res.json(cached);
-  }
-
-  console.log(`[local-proxy] Fetching real public X data for @${cleanUsername}...`);
-
   try {
-    const result = await fetchXPublicProfile(cleanUsername);
-    cache.set(cacheKey, result);
-    console.log(`[local-proxy] Successfully built circle for @${cleanUsername}: ${result.connections.length} real interactions`);
-    res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=300');
-    return res.json(result);
+    const { data, isStale, cacheStatus, dataAge } = await getOrFetchUserData(cleanUsername);
+
+    res.setHeader('X-Cache-Status', cacheStatus || (isStale ? 'STALE' : 'LIVE'));
+    if (dataAge) {
+      res.setHeader('X-Data-Age', dataAge);
+    }
+
+    if (isStale) {
+      console.log(`[local-proxy] Serving STALE cached data for @${cleanUsername} (age: ${dataAge || 'unknown'})`);
+      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    } else {
+      console.log(`[local-proxy] Cache status [${cacheStatus}] for @${cleanUsername}`);
+      res.setHeader('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=600');
+    }
+
+    return res.json(data);
   } catch (err) {
     const status = err.status || 500;
+    if (status === 429) {
+      const retryAfter = err.retryAfter || 60;
+      console.warn(`[local-proxy] Rate limit on public X data for @${cleanUsername} (retry after ${retryAfter}s)`);
+      res.setHeader('Retry-After', String(retryAfter));
+      res.setHeader('Cache-Control', 'no-store, max-age=0');
+      return res.status(429).json({
+        error: 'X public data is temporarily rate-limited.',
+        status: 429,
+        retryAfter
+      });
+    }
+
     const message = err.message || 'Unable to build your Circle right now.';
     console.error(`[local-proxy] Error for @${cleanUsername} [HTTP ${status}]:`, message);
     return res.status(status).json({ error: message, status });

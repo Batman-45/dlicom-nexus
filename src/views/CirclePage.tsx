@@ -37,6 +37,7 @@ export const CirclePage: React.FC = () => {
   const [activeNavTab, setActiveNavTab] = useState<string>('circle');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showOrbits, setShowOrbits] = useState<boolean>(true);
+  const [isStaleData, setIsStaleData] = useState<boolean>(false);
 
   // Viewport Transform State
   const [transform, setTransform] = useState<ViewportTransform>({
@@ -69,6 +70,7 @@ export const CirclePage: React.FC = () => {
       setFriends(transformed.friends);
       setNetworkStats(transformed.stats);
       setIsMockData(transformed.isMockData);
+      setIsStaleData(!!graphResult.isStale);
 
       // Reset view to center and open constellation
       setSelectedUser(null);
@@ -97,6 +99,7 @@ export const CirclePage: React.FC = () => {
       setFriends(transformed.friends);
       setNetworkStats(transformed.stats);
       setIsMockData(true);
+      setIsStaleData(false);
 
       setSelectedUser(null);
       setTransform({ x: 0, y: 0, scale: 0.95 });
@@ -284,6 +287,7 @@ export const CirclePage: React.FC = () => {
         totalVisible={filteredUserIds.size}
         onChangeCircle={handleChangeCircle}
         isMockData={isMockData}
+        isStaleData={isStaleData}
       />
 
       {/* Hero Interactive Friend Constellation Canvas */}

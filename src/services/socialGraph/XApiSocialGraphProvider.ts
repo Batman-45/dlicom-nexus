@@ -21,6 +21,7 @@ export class XApiSocialGraphProvider implements SocialGraphProvider {
       connections: (data.connections || []).map(this.mapConnection),
       fetchedAt: data.fetchedAt || new Date().toISOString(),
       isMockData: false,
+      isStale: !!data.isStale,
     };
   }
 
@@ -50,7 +51,13 @@ export class XApiSocialGraphProvider implements SocialGraphProvider {
           throw new SocialGraphError(message || 'This X account is protected or unavailable.', 'UNAVAILABLE');
         }
         if (response.status === 429) {
-          throw new SocialGraphError(message || 'Rate limit reached on public X data. Please try again in a few moments.', 'RATE_LIMITED');
+          const rateLimitError = new SocialGraphError(
+            errJson?.error || 'X public data is temporarily rate-limited.',
+            'RATE_LIMITED'
+          );
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (rateLimitError as any).retryAfter = errJson?.retryAfter || 60;
+          throw rateLimitError;
         }
         throw new SocialGraphError(message, 'NETWORK_ERROR');
       }

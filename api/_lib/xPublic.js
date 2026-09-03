@@ -33,8 +33,9 @@ export async function fetchXPublicProfile(rawUsername) {
         return reject(err);
       }
       if (res.statusCode === 429) {
-        const err = new Error('Rate limit reached on public X syndication. Please try again in a few moments.');
+        const err = new Error('X public data is temporarily rate-limited.');
         err.status = 429;
+        err.retryAfter = 60;
         return reject(err);
       }
       if (res.statusCode === 403) {
