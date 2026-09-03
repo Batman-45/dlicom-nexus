@@ -1,0 +1,379 @@
+/* CircleOnboarding.css - Rock-solid dedicated layout & styling */
+
+.onboarding-viewport {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #06080e;
+  background-image: 
+    radial-gradient(circle at 50% 40%, rgba(56, 189, 248, 0.07) 0%, rgba(168, 85, 247, 0.04) 30%, transparent 65%),
+    linear-gradient(180deg, #06080e 0%, #030408 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 24px 20px;
+  user-select: none;
+}
+
+/* Background Orbit Rings (purely decorative) */
+.onboarding-bg-orbits {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  max-width: 900px;
+  max-height: 900px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.onboarding-ring {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.onboarding-ring-outer {
+  width: 720px;
+  height: 720px;
+  border: 1px solid rgba(56, 189, 248, 0.08);
+  animation: pulse-outer-ring 7s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.onboarding-ring-mid {
+  width: 480px;
+  height: 480px;
+  border: 1px solid rgba(168, 85, 247, 0.12);
+  animation: pulse-ring 5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.onboarding-ring-inner {
+  width: 280px;
+  height: 280px;
+  border: 1px solid rgba(56, 189, 248, 0.15);
+}
+
+/* Main Content Card Container */
+.onboarding-container {
+  position: relative;
+  z-index: 10;
+  width: min(100% - 40px, 620px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-sizing: border-box;
+  transform: translateY(-1.5vh);
+}
+
+/* Logo/Icon Container */
+.onboarding-icon-box {
+  width: 88px;
+  height: 88px;
+  border-radius: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.onboarding-icon-svg {
+  width: 44px;
+  height: 44px;
+  color: #38bdf8;
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.5));
+}
+
+/* Typography */
+.onboarding-title {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 36px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  margin: 0 0 10px 0;
+  padding: 0;
+}
+
+.onboarding-subtitle {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0 0 28px 0;
+  padding: 0;
+  max-width: 480px;
+}
+
+/* Form */
+.onboarding-form {
+  width: 100%;
+  max-width: 560px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+/* Input Box */
+.onboarding-input-wrap {
+  width: 100%;
+  max-width: 560px;
+  height: 56px;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(11, 15, 26, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.onboarding-input-wrap:focus-within {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2), 0 0 20px rgba(56, 189, 248, 0.15);
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.onboarding-at-prefix {
+  padding-left: 20px;
+  padding-right: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 17px;
+  font-weight: 700;
+  color: #38bdf8;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.onboarding-input-field {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #ffffff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  padding: 0 18px 0 2px;
+  box-sizing: border-box;
+}
+
+.onboarding-input-field::placeholder {
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Error Banner */
+.onboarding-error-text {
+  width: 100%;
+  max-width: 560px;
+  font-size: 12px;
+  color: #fb7185;
+  text-align: left;
+  margin: -4px 0 10px 4px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+
+/* Helper Text below input */
+.onboarding-helper-text {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 14px 0;
+  font-family: 'JetBrains Mono', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Primary Button */
+.onboarding-submit-btn {
+  width: 100%;
+  max-width: 560px;
+  height: 56px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 50%, #8b5cf6 100%);
+  color: #030712;
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px -4px rgba(56, 189, 248, 0.4);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.onboarding-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px -4px rgba(56, 189, 248, 0.55);
+  filter: brightness(1.05);
+}
+
+.onboarding-submit-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 12px -2px rgba(56, 189, 248, 0.3);
+}
+
+/* Examples Block */
+.onboarding-examples-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 560px;
+  margin-top: 4px;
+}
+
+.onboarding-examples-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #64748b;
+  margin: 0 0 10px 0;
+}
+
+.onboarding-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.onboarding-chip-btn {
+  padding: 7px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.onboarding-chip-btn:hover {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  transform: translateY(-1px);
+}
+
+/* Developer Demo Trigger */
+.onboarding-demo-block {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.onboarding-demo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  color: #c084fc;
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.onboarding-demo-btn:hover {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: rgba(168, 85, 247, 0.5);
+  color: #e9d5ff;
+}
+
+.onboarding-demo-hint {
+  font-size: 10px;
+  color: #64748b;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Mobile Responsive Tweaks (≤ 480px) */
+@media (max-width: 480px) {
+  .onboarding-viewport {
+    padding: 16px 20px;
+    justify-content: center;
+  }
+
+  .onboarding-container {
+    width: 100%;
+    transform: none;
+  }
+
+  .onboarding-icon-box {
+    width: 76px;
+    height: 76px;
+    border-radius: 22px;
+    margin-bottom: 16px;
+  }
+
+  .onboarding-icon-svg {
+    width: 38px;
+    height: 38px;
+  }
+
+  .onboarding-title {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .onboarding-subtitle {
+    font-size: 14px;
+    margin-bottom: 22px;
+  }
+
+  .onboarding-input-wrap,
+  .onboarding-submit-btn {
+    height: 52px;
+  }
+
+  .onboarding-submit-btn {
+    font-size: 15px;
+    margin-bottom: 16px;
+  }
+}
