@@ -93,7 +93,7 @@ export async function getOrFetchUserData(cleanUsername) {
       isStale: false,
       fetchedAt: dbRecord.fetched_at,
       dataStatus: dbRecord.profile_json?.dataStatus || (hasConnections ? 'OK' : 'NO_PUBLIC_INTERACTIONS'),
-      reason: dbRecord.profile_json?.reason || (hasConnections ? null : 'No usable public X interactions were available from the syndication source.'),
+      reason: dbRecord.profile_json?.reason || (hasConnections ? null : 'No usable public X interactions were available from the public sources.'),
     };
 
     // SAFE CACHE RULE:
@@ -198,7 +198,7 @@ export async function getOrFetchUserData(cleanUsername) {
           isMockData: false,
           isStale: true,
           dataStatus: staleCandidate.profile_json?.dataStatus || (staleCandidate.connections_json?.length > 0 ? 'OK' : 'NO_PUBLIC_INTERACTIONS'),
-          reason: staleCandidate.profile_json?.reason || (staleCandidate.connections_json?.length > 0 ? null : 'No usable public X interactions were available from the syndication source.'),
+          reason: staleCandidate.profile_json?.reason || (staleCandidate.connections_json?.length > 0 ? null : 'No usable public X interactions were available from the public sources.'),
           fetchedAt: staleCandidate.fetched_at,
         };
 

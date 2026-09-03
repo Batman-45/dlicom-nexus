@@ -66,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
             {dataStatus === 'NO_PUBLIC_INTERACTIONS' && !isMockData && (
               <span
                 className="text-[9px] font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30"
-                title={dataReason || 'No usable public X interactions were available from the syndication source.'}
+                title={dataReason || 'No usable public X interactions were available from the public sources.'}
               >
                 No public X interactions available
               </span>

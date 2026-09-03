@@ -305,7 +305,7 @@ export const CirclePage: React.FC = () => {
           <div className="glass-panel px-4 py-2 rounded-full border border-amber-500/25 bg-slate-950/85 shadow-2xl flex items-center gap-2 pointer-events-auto backdrop-blur-md">
             <span className="w-2 h-2 rounded-full bg-amber-400"></span>
             <p className="text-xs text-slate-300 font-sans">
-              No public X interactions available for <span className="font-semibold text-white">@{currentUser.username}</span> in syndication.
+              No public X interactions available for <span className="font-semibold text-white">@{currentUser.username}</span> from public X sources.
             </p>
           </div>
         </div>

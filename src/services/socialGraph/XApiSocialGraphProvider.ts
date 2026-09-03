@@ -21,7 +21,7 @@ export class XApiSocialGraphProvider implements SocialGraphProvider {
       profile: this.mapProfile(data.profile),
       connections: (data.connections || []).map(this.mapConnection),
       dataStatus: data.dataStatus || (hasConnections ? 'OK' : 'NO_PUBLIC_INTERACTIONS'),
-      reason: data.reason || (hasConnections ? undefined : 'No usable public X interactions were available from the syndication source.'),
+      reason: data.reason || (hasConnections ? undefined : 'No usable public X interactions were available from the public sources.'),
       fetchedAt: data.fetchedAt || new Date().toISOString(),
       isMockData: false,
       isStale: !!data.isStale,
