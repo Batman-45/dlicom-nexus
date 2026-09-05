@@ -1,10 +1,15 @@
 import NodeCache from 'node-cache';
-import { fetchXPublicProfile } from './xPublic.js';
+import { fetchXPublicProfile, deduplicateConnections } from './xPublic.js';
 import {
   fetchCachedRecord,
   upsertCachedRecord,
   updateLastAttempted
 } from './supabase.js';
+
+export { deduplicateConnections };
+
+// Strict cache schema version to invalidate older unisolated cached records
+export const CACHE_SCHEMA_VERSION = 'v2_strict_isolation';
 
 // Fast in-memory L1 cache (24 hours TTL: 86400s)
 export const freshCache = new NodeCache({ stdTTL: 86400, checkperiod: 300 });
@@ -72,8 +77,9 @@ export async function getOrFetchUserData(cleanUsername) {
 
   // STEP 1: Check persistent cache (and memory L1)
   const memoryHit = freshCache.get(cacheKey);
-  if (memoryHit && !inCooldown) {
+  if (memoryHit && !inCooldown && memoryHit.profile?.schemaVersion === CACHE_SCHEMA_VERSION) {
     if (Array.isArray(memoryHit.connections) && memoryHit.connections.length > 0) {
+      memoryHit.connections = deduplicateConnections(memoryHit.connections);
       return { data: memoryHit, isStale: false, cacheStatus: 'PERSISTENT-HIT' };
     }
   }
@@ -82,13 +88,15 @@ export async function getOrFetchUserData(cleanUsername) {
   const dbRecord = await fetchCachedRecord(cacheKey);
 
   if (dbRecord) {
+    const isSchemaValid = dbRecord.profile_json?.schemaVersion === CACHE_SCHEMA_VERSION;
     const expiresTime = new Date(dbRecord.expires_at).getTime();
     const isFresh = now < expiresTime;
-    const hasConnections = Array.isArray(dbRecord.connections_json) && dbRecord.connections_json.length > 0;
+    const dedupedConnections = deduplicateConnections(dbRecord.connections_json || []);
+    const hasConnections = dedupedConnections.length > 0;
 
     const formattedData = {
       profile: dbRecord.profile_json,
-      connections: dbRecord.connections_json || [],
+      connections: dedupedConnections,
       isMockData: false,
       isStale: false,
       fetchedAt: dbRecord.fetched_at,
@@ -97,10 +105,9 @@ export async function getOrFetchUserData(cleanUsername) {
     };
 
     // SAFE CACHE RULE:
-    // Only serve immediately from cache (PERSISTENT-HIT) if data is fresh AND has real connections!
-    // If the record was previously empty, do NOT permanently lock in the empty result.
-    // Instead, allow revalidation against X (unless in rate-limit cooldown).
-    if (isFresh && hasConnections) {
+    // Only serve immediately from cache (PERSISTENT-HIT) if data is fresh, has valid schema, AND has real connections!
+    // If the record was previously empty or from legacy unisolated schema, revalidate against X.
+    if (isFresh && hasConnections && isSchemaValid) {
       const remainingTtlSeconds = Math.max(60, Math.floor((expiresTime - now) / 1000));
       freshCache.set(cacheKey, formattedData, remainingTtlSeconds);
       return { data: formattedData, isStale: false, cacheStatus: 'PERSISTENT-HIT' };
@@ -143,7 +150,8 @@ export async function getOrFetchUserData(cleanUsername) {
   const fetchPromise = (async () => {
     try {
       const result = await fetchXPublicProfile(cleanUsername);
-      const hasConnections = Array.isArray(result.connections) && result.connections.length > 0;
+      const deduplicatedConnections = deduplicateConnections(result.connections || []);
+      const hasConnections = deduplicatedConnections.length > 0;
 
       // When saving to Supabase:
       // Valid non-empty real data is saved with full 24h TTL.
@@ -154,18 +162,30 @@ export async function getOrFetchUserData(cleanUsername) {
 
       const profileToSave = {
         ...result.profile,
-        dataStatus: result.dataStatus,
-        reason: result.reason,
+        schemaVersion: CACHE_SCHEMA_VERSION,
+        dataStatus: hasConnections ? 'OK' : 'NO_PUBLIC_INTERACTIONS',
+        reason: hasConnections ? undefined : 'No usable public X interactions were available from the public sources.',
       };
 
-      await upsertCachedRecord(cleanUsername, profileToSave, result.connections, expiresAt);
+      await upsertCachedRecord(cleanUsername, profileToSave, deduplicatedConnections, expiresAt);
+
+      const cleanResult = {
+        ...result,
+        profile: {
+          ...result.profile,
+          schemaVersion: CACHE_SCHEMA_VERSION,
+        },
+        connections: deduplicatedConnections,
+        dataStatus: hasConnections ? 'OK' : 'NO_PUBLIC_INTERACTIONS',
+        reason: hasConnections ? undefined : 'No usable public X interactions were available from the public sources.',
+      };
 
       // Update in-memory L1 cache
       const memoryTtl = hasConnections ? 86400 : 900;
-      freshCache.set(cacheKey, result, memoryTtl);
+      freshCache.set(cacheKey, cleanResult, memoryTtl);
       memoryStaleCache.set(cacheKey, {
         profile_json: profileToSave,
-        connections_json: result.connections,
+        connections_json: deduplicatedConnections,
         fetched_at: result.fetchedAt,
       });
 
@@ -173,7 +193,7 @@ export async function getOrFetchUserData(cleanUsername) {
       rateLimitCooldowns.delete(cacheKey);
 
       return {
-        data: result,
+        data: cleanResult,
         isStale: false,
         cacheStatus: staleCandidate ? 'REFRESHED' : 'LIVE',
       };
@@ -192,13 +212,16 @@ export async function getOrFetchUserData(cleanUsername) {
         const fetchedTime = new Date(staleCandidate.fetched_at).getTime();
         const ageSeconds = Math.max(0, Math.floor((Date.now() - fetchedTime) / 1000));
 
+        const dedupedStaleConns = deduplicateConnections(staleCandidate.connections_json || []);
+        const hasStaleConns = dedupedStaleConns.length > 0;
+
         const staleData = {
           profile: staleCandidate.profile_json,
-          connections: staleCandidate.connections_json || [],
+          connections: dedupedStaleConns,
           isMockData: false,
           isStale: true,
-          dataStatus: staleCandidate.profile_json?.dataStatus || (staleCandidate.connections_json?.length > 0 ? 'OK' : 'NO_PUBLIC_INTERACTIONS'),
-          reason: staleCandidate.profile_json?.reason || (staleCandidate.connections_json?.length > 0 ? null : 'No usable public X interactions were available from the public sources.'),
+          dataStatus: staleCandidate.profile_json?.dataStatus || (hasStaleConns ? 'OK' : 'NO_PUBLIC_INTERACTIONS'),
+          reason: staleCandidate.profile_json?.reason || (hasStaleConns ? null : 'No usable public X interactions were available from the public sources.'),
           fetchedAt: staleCandidate.fetched_at,
         };
 

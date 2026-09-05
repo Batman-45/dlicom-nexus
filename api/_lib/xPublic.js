@@ -500,10 +500,22 @@ export async function fetchXPublicProfile(rawUsername) {
       const rec = records[k];
       if (rec?.__typename === 'Tweet' && rec.rest_id) {
         const legacy = deref(rec.legacy) || {};
+        const details = deref(rec.details) || {};
         const tweetCore = deref(rec.core);
-        const authorUser = deref(tweetCore?.user_results?.result) || deref(rec.user) || null;
+        const userResultsObj = deref(tweetCore?.user_results);
+        const userResult = deref(userResultsObj?.result) || deref(rec.user) || null;
+        const userCore = deref(userResult?.core);
+        const authorUser = userCore?.screen_name
+          ? {
+              id_str: userResult?.rest_id || userCore?.rest_id,
+              screen_name: userCore.screen_name,
+              name: userCore.name,
+              profile_image_url_https: deref(userResult?.avatar)?.image_url,
+              description: deref(userResult?.legacy)?.description || '',
+            }
+          : deref(rec.user) || null;
 
-        let fullText = legacy.full_text || rec.text || '';
+        let fullText = legacy.full_text || rec.text || details?.full_text || '';
         const noteTweetData = deref(rec.note_tweet);
         const userMentions = [];
 
@@ -540,17 +552,76 @@ export async function fetchXPublicProfile(rawUsername) {
         }
 
         const replyToUserResults = deref(rec.reply_to_user_results);
-        const replyUser = deref(replyToUserResults?.result) || deref(replyToUserResults);
-        const replyScreenName = legacy.in_reply_to_screen_name || replyUser?.core?.screen_name || replyUser?.screen_name || null;
-        const replyUserIdStr = legacy.in_reply_to_user_id_str || replyUser?.rest_id || null;
+        const replyUserObj = deref(replyToUserResults?.result) || deref(replyToUserResults);
+        const replyCore = deref(replyUserObj?.core);
+        const replyScreenName = legacy.in_reply_to_screen_name || replyCore?.screen_name || replyUserObj?.screen_name || null;
+        const replyUserIdStr = legacy.in_reply_to_user_id_str || replyUserObj?.rest_id || null;
 
         const quotedResults = deref(rec.quoted_tweet_results);
-        const quotedTweet = deref(quotedResults?.result?.tweet) || deref(quotedResults?.result) || quotedResults;
-        const quotedAuthor = quotedTweet ? (deref(deref(quotedTweet.core)?.user_results?.result) || deref(quotedTweet.user)) : null;
+        const quotedResult = deref(quotedResults?.result);
+        const quotedTweet = deref(quotedResult?.tweet) || quotedResult || quotedResults;
+        const quotedCore = deref(quotedTweet?.core);
+        const quotedUserResults = deref(quotedCore?.user_results);
+        const quotedUserResult = deref(quotedUserResults?.result) || deref(quotedTweet?.user);
+        const quotedUserCore = deref(quotedUserResult?.core);
+        const quotedAuthor = quotedUserCore?.screen_name
+          ? {
+              id_str: quotedUserResult?.rest_id,
+              screen_name: quotedUserCore.screen_name,
+              name: quotedUserCore.name,
+              profile_image_url_https: deref(quotedUserResult?.avatar)?.image_url,
+              description: deref(quotedUserResult?.legacy)?.description || '',
+            }
+          : deref(quotedTweet?.user) || null;
 
         const retweetResults = deref(rec.retweeted_status_results) || deref(legacy.retweeted_status_result);
-        const retweetedTweet = deref(retweetResults?.result?.tweet) || deref(retweetResults?.result) || retweetResults;
-        const retweetedAuthor = retweetedTweet ? (deref(deref(retweetedTweet.core)?.user_results?.result) || deref(retweetedTweet.user)) : null;
+        const retweetResult = deref(retweetResults?.result);
+        const retweetedTweet = deref(retweetResult?.tweet) || retweetResult || retweetResults;
+        const rtCore = deref(retweetedTweet?.core);
+        const rtUserResults = deref(rtCore?.user_results);
+        const rtUserResult = deref(rtUserResults?.result) || deref(retweetedTweet?.user);
+        const rtUserCore = deref(rtUserResult?.core);
+        const retweetedAuthor = rtUserCore?.screen_name
+          ? {
+              id_str: rtUserResult?.rest_id,
+              screen_name: rtUserCore.screen_name,
+              name: rtUserCore.name,
+              profile_image_url_https: deref(rtUserResult?.avatar)?.image_url,
+              description: deref(rtUserResult?.legacy)?.description || '',
+            }
+          : deref(retweetedTweet?.user) || null;
+
+        const quotedUserMentions = [];
+        const quotedNoteTweet = deref(quotedTweet?.note_tweet);
+        if (quotedNoteTweet) {
+          const qnRes = deref(quotedNoteTweet.note_tweet_results);
+          const qn = deref(qnRes?.result) || deref(qnRes);
+          const qEntitySet = deref(qn?.entity_set);
+          if (qEntitySet?.user_mentions?.__refs) {
+            for (const refId of qEntitySet.user_mentions.__refs) {
+              const m = records[refId];
+              if (m?.screen_name) {
+                quotedUserMentions.push({
+                  screen_name: m.screen_name,
+                  name: m.name || m.screen_name,
+                  id_str: m.id_str || null,
+                });
+              }
+            }
+          }
+        }
+        if (quotedTweet?.mention_entities?.__refs) {
+          for (const refId of quotedTweet.mention_entities.__refs) {
+            const m = records[refId];
+            if (m?.screen_name) {
+              quotedUserMentions.push({
+                screen_name: m.screen_name,
+                name: m.name || m.screen_name,
+                id_str: m.id_str || null,
+              });
+            }
+          }
+        }
 
         allNormalizedTweets.push({
           id_str: rec.rest_id,
@@ -561,7 +632,12 @@ export async function fetchXPublicProfile(rawUsername) {
           entities: {
             user_mentions: userMentions,
           },
-          quoted_tweet: quotedAuthor ? { user: normalizeUser(quotedAuthor) } : null,
+          quoted_tweet: quotedAuthor
+            ? {
+                user: normalizeUser(quotedAuthor),
+                entities: { user_mentions: quotedUserMentions },
+              }
+            : null,
           retweeted_status: retweetedAuthor ? { user: normalizeUser(retweetedAuthor) } : null,
         });
 
@@ -713,68 +789,153 @@ export async function fetchXPublicProfile(rawUsername) {
     interactionMap.set(key, existing);
   };
 
+  const cleanLower = clean.toLowerCase();
+
   for (const tweet of deduplicatedTweets) {
     const tId = tweet.id_str;
+    const authorUser = tweet.user;
+    const authorScreenName = (authorUser?.screen_name || '').toLowerCase().replace(/^@+/, '').trim();
+    const isTargetUserAuthor = authorScreenName === cleanLower;
 
-    // Reply: weight 3
-    if (tweet.in_reply_to_screen_name) {
-      recordInteraction(
-        tweet.in_reply_to_screen_name,
-        null,
-        null,
-        null,
-        tweet.in_reply_to_user_id_str,
-        3,
-        'reply',
-        tId
-      );
-    }
+    if (isTargetUserAuthor) {
+      // OUTGOING: clean authored this tweet and interacted with other accounts
 
-    // User mentions in entities: weight 2
-    if (tweet.entities?.user_mentions && tweet.entities.user_mentions.length > 0) {
-      for (const m of tweet.entities.user_mentions) {
-        const screenName = m.screen_name || m.screenName;
-        const name = m.name;
-        const idStr = m.id_str || (m.id ? String(m.id) : null);
-        recordInteraction(screenName, name, null, null, idStr, 2, 'mention', tId);
+      // Reply: weight 3
+      if (tweet.in_reply_to_screen_name) {
+        recordInteraction(
+          tweet.in_reply_to_screen_name,
+          null,
+          null,
+          null,
+          tweet.in_reply_to_user_id_str,
+          3,
+          'reply',
+          tId
+        );
       }
-    } else {
-      // Text @mentions fallback: weight 1 (only when structured mentions are absent on this tweet)
-      const text = tweet.text || '';
-      const matches = text.match(/@([a-zA-Z0-9_]{1,25})/g) || [];
-      for (const m of matches) {
-        recordInteraction(m.slice(1), null, null, null, null, 1, 'mention', tId);
+
+      // User mentions in entities: weight 2
+      if (tweet.entities?.user_mentions && tweet.entities.user_mentions.length > 0) {
+        for (const m of tweet.entities.user_mentions) {
+          const screenName = m.screen_name || m.screenName;
+          const name = m.name;
+          const idStr = m.id_str || (m.id ? String(m.id) : null);
+          recordInteraction(screenName, name, null, null, idStr, 2, 'mention', tId);
+        }
+      } else {
+        // Text @mentions fallback: weight 1 (only when structured mentions are absent on this tweet)
+        const text = tweet.text || '';
+        const matches = text.match(/@([a-zA-Z0-9_]{1,25})/g) || [];
+        for (const m of matches) {
+          recordInteraction(m.slice(1), null, null, null, null, 1, 'mention', tId);
+        }
       }
-    }
 
-    // Quoted tweet: weight 2
-    if (tweet.quoted_tweet?.user) {
-      const qu = tweet.quoted_tweet.user;
-      recordInteraction(
-        qu.screen_name,
-        qu.name,
-        qu.profile_image_url_https,
-        qu.description,
-        qu.id_str,
-        2,
-        'quote',
-        tId
-      );
-    }
+      // Quoted tweet: weight 2 for author, weight 1 for quoted mentions
+      if (tweet.quoted_tweet?.user) {
+        const qu = tweet.quoted_tweet.user;
+        recordInteraction(
+          qu.screen_name,
+          qu.name,
+          qu.profile_image_url_https,
+          qu.description,
+          qu.id_str,
+          2,
+          'quote',
+          tId
+        );
+      }
+      if (tweet.quoted_tweet?.entities?.user_mentions?.length > 0) {
+        for (const m of tweet.quoted_tweet.entities.user_mentions) {
+          const screenName = m.screen_name || m.screenName;
+          const name = m.name;
+          const idStr = m.id_str || (m.id ? String(m.id) : null);
+          recordInteraction(screenName, name, null, null, idStr, 1, 'quote_mention', tId);
+        }
+      }
 
-    // Retweet / Repost: weight 1
-    if (tweet.retweeted_status?.user) {
-      const rt = tweet.retweeted_status.user;
-      recordInteraction(
-        rt.screen_name,
-        rt.name,
-        rt.profile_image_url_https,
-        rt.description,
-        rt.id_str,
-        1,
-        'repost',
-        tId
-      );
+      // Retweet / Repost: weight 1
+      if (tweet.retweeted_status?.user) {
+        const rt = tweet.retweeted_status.user;
+        recordInteraction(
+          rt.screen_name,
+          rt.name,
+          rt.profile_image_url_https,
+          rt.description,
+          rt.id_str,
+          1,
+          'repost',
+          tId
+        );
+      }
+    } else if (authorUser && authorScreenName && authorScreenName !== cleanLower) {
+      // INCOMING: Another user authored this tweet directed at clean
+
+      // 1. Reply to clean
+      const inReplyTo = (tweet.in_reply_to_screen_name || '').toLowerCase().replace(/^@+/, '').trim();
+      if (inReplyTo === cleanLower) {
+        recordInteraction(
+          authorUser.screen_name,
+          authorUser.name,
+          authorUser.profile_image_url_https,
+          authorUser.description,
+          authorUser.id_str,
+          3,
+          'reply',
+          tId
+        );
+      }
+
+      // 2. Mention of clean
+      const mentionsClean =
+        (tweet.entities?.user_mentions &&
+          tweet.entities.user_mentions.some(
+            (m) => (m.screen_name || m.screenName || '').toLowerCase().replace(/^@+/, '').trim() === cleanLower
+          )) ||
+        (tweet.text && new RegExp(`@${cleanLower}\\b`, 'i').test(tweet.text));
+
+      if (mentionsClean) {
+        recordInteraction(
+          authorUser.screen_name,
+          authorUser.name,
+          authorUser.profile_image_url_https,
+          authorUser.description,
+          authorUser.id_str,
+          2,
+          'mention',
+          tId
+        );
+      }
+
+      // 3. Quote of clean's tweet
+      const quotedAuthor = (tweet.quoted_tweet?.user?.screen_name || '').toLowerCase().replace(/^@+/, '').trim();
+      if (quotedAuthor === cleanLower) {
+        recordInteraction(
+          authorUser.screen_name,
+          authorUser.name,
+          authorUser.profile_image_url_https,
+          authorUser.description,
+          authorUser.id_str,
+          2,
+          'quote',
+          tId
+        );
+      }
+
+      // 4. Retweet of clean's tweet
+      const rtAuthor = (tweet.retweeted_status?.user?.screen_name || '').toLowerCase().replace(/^@+/, '').trim();
+      if (rtAuthor === cleanLower) {
+        recordInteraction(
+          authorUser.screen_name,
+          authorUser.name,
+          authorUser.profile_image_url_https,
+          authorUser.description,
+          authorUser.id_str,
+          1,
+          'repost',
+          tId
+        );
+      }
     }
   }
 
@@ -782,7 +943,7 @@ export async function fetchXPublicProfile(rawUsername) {
   const sorted = Array.from(interactionMap.values()).sort((a, b) => b.rawScore - a.rawScore);
   const maxScore = sorted.length > 0 ? sorted[0].rawScore : 1;
 
-  const connections = sorted.map((conn) => {
+  const rawConnections = sorted.map((conn) => {
     const score = Math.max(15, Math.min(98, Math.round((conn.rawScore / maxScore) * 83 + 15)));
     const types = Array.from(conn.interactionTypesSet);
     return {
@@ -801,6 +962,8 @@ export async function fetchXPublicProfile(rawUsername) {
     };
   });
 
+  const connections = deduplicateConnections(rawConnections);
+
   const dataStatus = connections.length > 0 ? 'OK' : 'NO_PUBLIC_INTERACTIONS';
   const reason = connections.length > 0
     ? null
@@ -815,4 +978,118 @@ export async function fetchXPublicProfile(rawUsername) {
     reason,
     fetchedAt: new Date().toISOString()
   };
+}
+
+/**
+ * Deterministically deduplicates connection objects by normalized X username.
+ *
+ * Rules:
+ * 1. Exactly one connection object per unique normalized username.
+ * 2. Merges interactionCount (summing observed counts).
+ * 3. Merges interactionTypes without duplicates.
+ * 4. Preserves the strongest interactionScore and connectionStrength.
+ * 5. Preserves richest profile fields (avatar, displayName, bio, id).
+ * 6. Never manufactures identities (only processes provided items).
+ * 7. Preserves sorted order (descending by score, then alphabetical by username).
+ *
+ * @param {Array} rawConnections
+ * @returns {Array}
+ */
+export function deduplicateConnections(rawConnections) {
+  if (!Array.isArray(rawConnections) || rawConnections.length === 0) {
+    return [];
+  }
+
+  const mergedMap = new Map();
+
+  for (const conn of rawConnections) {
+    if (!conn || !conn.username) continue;
+    const normUsername = String(conn.username).replace(/^@+/, '').trim().toLowerCase();
+    if (!normUsername || !/^[a-zA-Z0-9_]{1,25}$/.test(normUsername)) continue;
+
+    const existing = mergedMap.get(normUsername);
+
+    if (!existing) {
+      const types = Array.isArray(conn.interactionTypes)
+        ? Array.from(new Set(conn.interactionTypes.filter(Boolean)))
+        : [];
+      const score = Number(conn.interactionScore ?? conn.connectionStrength) || 50;
+      const count = Number(conn.interactionCount) > 0 ? Number(conn.interactionCount) : 1;
+
+      mergedMap.set(normUsername, {
+        id: conn.id || `x-${normUsername}`,
+        username: conn.username.replace(/^@+/, '').trim(),
+        displayName: conn.displayName || conn.name || conn.username,
+        avatar: conn.avatar || `https://unavatar.io/x/${encodeURIComponent(normUsername)}`,
+        avatarSource: conn.avatarSource || (conn.avatar?.includes('twimg.com') ? 'x-cdn' : 'unavatar-fallback'),
+        bio: conn.bio || '',
+        interactionCount: count,
+        interactionTypes: types,
+        interactionScore: score,
+        connectionStrength: Number(conn.connectionStrength) || score,
+        role: conn.role || (types.length ? `Interacted via ${types.join(' · ')}` : 'X Interaction'),
+        category: conn.category || (types.includes('reply') ? 'friends' : types.includes('quote') ? 'creators' : 'builders'),
+      });
+    } else {
+      // 1. Merge interactionCount
+      const incomingCount = Number(conn.interactionCount) > 0 ? Number(conn.interactionCount) : 1;
+      existing.interactionCount += incomingCount;
+
+      // 2. Merge interactionTypes
+      if (Array.isArray(conn.interactionTypes)) {
+        const typeSet = new Set(existing.interactionTypes);
+        for (const t of conn.interactionTypes) {
+          if (t) typeSet.add(t);
+        }
+        existing.interactionTypes = Array.from(typeSet);
+      }
+
+      // 3. Preserve highest interactionScore and connectionStrength
+      const incomingScore = Number(conn.interactionScore ?? conn.connectionStrength) || 0;
+      if (incomingScore > existing.interactionScore) {
+        existing.interactionScore = incomingScore;
+      }
+      const incomingStrength = Number(conn.connectionStrength ?? conn.interactionScore) || 0;
+      if (incomingStrength > existing.connectionStrength) {
+        existing.connectionStrength = incomingStrength;
+      }
+      existing.connectionStrength = Math.max(existing.connectionStrength, existing.interactionScore);
+
+      // 4. Preserve richer metadata
+      if (existing.displayName === normUsername && conn.displayName && conn.displayName !== normUsername) {
+        existing.displayName = conn.displayName;
+      }
+      if (existing.avatarSource !== 'x-cdn' && conn.avatarSource === 'x-cdn') {
+        existing.avatar = conn.avatar;
+        existing.avatarSource = 'x-cdn';
+      }
+      if (!existing.bio && conn.bio) {
+        existing.bio = conn.bio;
+      }
+      if (existing.id.startsWith('x-') && conn.id && !conn.id.startsWith('x-')) {
+        existing.id = conn.id;
+      }
+
+      // Update role & category based on merged types
+      if (existing.interactionTypes.length > 0) {
+        existing.role = `Interacted via ${existing.interactionTypes.join(' · ')}`;
+        existing.category = existing.interactionTypes.includes('reply')
+          ? 'friends'
+          : existing.interactionTypes.includes('quote')
+          ? 'creators'
+          : 'builders';
+      }
+    }
+  }
+
+  // Deterministically sort descending by connectionStrength/interactionScore, then alphabetically by handle
+  return Array.from(mergedMap.values()).sort((a, b) => {
+    if (b.connectionStrength !== a.connectionStrength) {
+      return b.connectionStrength - a.connectionStrength;
+    }
+    if (b.interactionScore !== a.interactionScore) {
+      return b.interactionScore - a.interactionScore;
+    }
+    return a.username.toLowerCase().localeCompare(b.username.toLowerCase());
+  });
 }
