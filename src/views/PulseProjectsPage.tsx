@@ -8,8 +8,7 @@ import {
 } from 'lucide-react';
 import { PulseNavbar } from '../components/Pulse/PulseNavbar';
 import { ClaimBadge } from '../components/Pulse/ClaimBadge';
-import { PULSE_PROJECTS } from '../services/pulse/pulseData';
-
+import { PulseService } from '../services/pulse/pulseService';
 
 interface PulseProjectsPageProps {
   onNavigate: (route: string) => void;
@@ -20,14 +19,16 @@ export const PulseProjectsPage: React.FC<PulseProjectsPageProps> = ({ onNavigate
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
 
+  const projects = useMemo(() => PulseService.getInstance().getProjects(), []);
+
   const categories = useMemo(() => {
     const set = new Set<string>();
-    PULSE_PROJECTS.forEach((p) => set.add(p.category));
+    projects.forEach((p) => set.add(p.category));
     return Array.from(set);
-  }, []);
+  }, [projects]);
 
   const filteredProjects = useMemo(() => {
-    return PULSE_PROJECTS.filter((p) => {
+    return projects.filter((p) => {
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !q ||
@@ -41,7 +42,7 @@ export const PulseProjectsPage: React.FC<PulseProjectsPageProps> = ({ onNavigate
 
       return matchesSearch && matchesCat && matchesStat;
     });
-  }, [searchQuery, selectedCategory, selectedStatus]);
+  }, [projects, searchQuery, selectedCategory, selectedStatus]);
 
   return (
     <div className="min-h-screen bg-[#07050f] text-slate-100 font-sans selection:bg-purple-500/30 selection:text-white flex flex-col">

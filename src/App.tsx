@@ -3,11 +3,14 @@ import { PulseDashboardPage } from './views/PulseDashboardPage';
 import { PulseMembersPage } from './views/PulseMembersPage';
 import { PulseProjectsPage } from './views/PulseProjectsPage';
 import { PulseMemberProfilePage } from './views/PulseMemberProfilePage';
-import { CirclePage } from './views/CirclePage';
 import { RegistryPage } from './views/RegistryPage';
 import { PassportPage } from './views/PassportPage';
 import { MethodologyPage } from './views/MethodologyPage';
 import { AuditPage } from './views/AuditPage';
+
+const CirclePage = React.lazy(() =>
+  import('./views/CirclePage').then((m) => ({ default: m.CirclePage }))
+);
 
 export default function App(): React.JSX.Element {
   const [currentPath, setCurrentPath] = useState<string>(() => {
@@ -67,7 +70,17 @@ export default function App(): React.JSX.Element {
   }
 
   if (currentPath === '/circle') {
-    return <CirclePage onNavigate={navigate} />;
+    return (
+      <React.Suspense
+        fallback={
+          <div className="min-h-screen bg-[#07050f] text-slate-100 flex items-center justify-center p-8">
+            <div className="w-10 h-10 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        }
+      >
+        <CirclePage onNavigate={navigate} />
+      </React.Suspense>
+    );
   }
 
   // Default to Community Dashboard (/)
