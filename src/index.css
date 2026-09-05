@@ -32,16 +32,35 @@
   padding: 0;
 }
 
-html, body, #root {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
+button {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+html, body {
+  min-height: 100vh;
+  overflow-x: hidden;
   background-color: var(--bg-space);
   color: var(--text-main);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  user-select: none;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Typography utilities */
@@ -76,15 +95,36 @@ html, body, #root {
 .max-w-lg { max-width: 32rem; }
 .max-w-xl { max-width: 36rem; }
 .max-w-2xl { max-width: 42rem; }
+.max-w-3xl { max-width: 48rem; }
+.max-w-4xl { max-width: 56rem; }
+.max-w-5xl { max-width: 64rem; }
 .max-w-6xl { max-width: 72rem; }
+.max-w-7xl { max-width: 80rem; }
 .max-w-full { max-width: 100%; }
 .w-0 { width: 0; }
 .h-0 { height: 0; }
 
+.hidden { display: none; }
+.block { display: block; }
+.inline-block { display: inline-block; }
 .flex { display: flex; }
 .inline-flex { display: inline-flex; }
 .grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
 .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.col-span-1 { grid-column: span 1 / span 1; }
+.col-span-2 { grid-column: span 2 / span 2; }
+.col-span-3 { grid-column: span 3 / span 3; }
+.col-span-4 { grid-column: span 4 / span 4; }
+.col-span-5 { grid-column: span 5 / span 5; }
+.col-span-6 { grid-column: span 6 / span 6; }
+.col-span-7 { grid-column: span 7 / span 7; }
+.col-span-8 { grid-column: span 8 / span 8; }
+.col-span-12 { grid-column: span 12 / span 12; }
 .flex-col { flex-direction: column; }
 .items-center { align-items: center; }
 .items-end { align-items: flex-end; }
@@ -365,10 +405,19 @@ html, body, #root {
 .h-9 { height: 2.25rem; }
 .w-11 { width: 2.75rem; }
 .h-11 { height: 2.75rem; }
-.w-16 { width: 4rem; }
+.w-12 { width: 3rem; min-width: 3rem; max-width: 3rem; }
+.h-12 { height: 3rem; min-height: 3rem; max-height: 3rem; }
+.w-13 { width: 3.25rem; min-width: 3.25rem; max-width: 3.25rem; }
+.h-13 { height: 3.25rem; min-height: 3.25rem; max-height: 3.25rem; }
+.w-14 { width: 3.5rem; min-width: 3.5rem; max-width: 3.5rem; }
+.h-14 { height: 3.5rem; min-height: 3.5rem; max-height: 3.5rem; }
+.w-16 { width: 4rem; min-width: 4rem; max-width: 4rem; }
+.h-16 { height: 4rem; min-height: 4rem; max-height: 4rem; }
 .w-20 { width: 5rem; }
 .h-20 { height: 5rem; }
 .h-28 { height: 7rem; }
+.h-\[168px\] { height: 168px; }
+.h-\[170px\] { height: 170px; }
 .w-36 { width: 9rem; }
 .w-48 { width: 12rem; }
 .w-56 { width: 14rem; }
@@ -417,6 +466,57 @@ html, body, #root {
   overflow: hidden;
 }
 
+/* Colors & Backgrounds */
+.bg-\[\#07050f\] { background-color: #07050f; }
+.bg-\[\#0e0c1f\] { background-color: #0e0c1f; }
+.bg-\[\#120f26\] { background-color: #120f26; }
+.bg-\[\#0c091d\] { background-color: #0c091d; }
+.bg-\[\#080613\] { background-color: #080613; }
+.text-slate-100 { color: #f1f5f9; }
+.text-slate-500 { color: #64748b; }
+.text-purple-300 { color: #d8b4fe; }
+.text-purple-400 { color: #c084fc; }
+.text-emerald-300 { color: #6ee7b7; }
+.text-emerald-400 { color: #34d399; }
+.text-pink-300 { color: #f9a8d4; }
+.text-pink-400 { color: #f472b6; }
+.bg-purple-500\/15 { background-color: rgba(168, 85, 247, 0.15); }
+.bg-purple-500\/20 { background-color: rgba(168, 85, 247, 0.2); }
+.border-purple-500\/30 { border-color: rgba(168, 85, 247, 0.3); }
+.border-purple-500\/40 { border-color: rgba(168, 85, 247, 0.4); }
+.border-emerald-500\/20 { border-color: rgba(16, 185, 129, 0.2); }
+.border-emerald-500\/25 { border-color: rgba(16, 185, 129, 0.25); }
+.border-emerald-500\/30 { border-color: rgba(16, 185, 129, 0.3); }
+.border-pink-500\/20 { border-color: rgba(236, 72, 153, 0.2); }
+.border-pink-500\/30 { border-color: rgba(236, 72, 153, 0.3); }
+.border-amber-500\/20 { border-color: rgba(245, 158, 11, 0.2); }
+.bg-emerald-500\/15 { background-color: rgba(16, 185, 129, 0.15); }
+.bg-pink-500\/10 { background-color: rgba(236, 72, 153, 0.1); }
+.bg-amber-500\/10 { background-color: rgba(245, 158, 11, 0.1); }
+.ring-1 { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1); }
+.ring-white\/10 { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1); }
+.ring-white\/15 { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15); }
+
+/* Spacing & Gaps */
+.gap-3\.5 { gap: 0.875rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-7 { gap: 1.75rem; }
+.gap-8 { gap: 2rem; }
+.p-3\.5 { padding: 0.875rem; }
+.p-4 { padding: 1rem; }
+.p-5 { padding: 1.25rem; }
+.p-6 { padding: 1.5rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+.py-7 { padding-top: 1.75rem; padding-bottom: 1.75rem; }
+.py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+.space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+.space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
+.space-y-3\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.875rem; }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+.space-y-7 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.75rem; }
+
 /* Responsive Media Queries */
 @media (min-width: 640px) {
   .sm\:flex { display: flex; }
@@ -424,8 +524,18 @@ html, body, #root {
   .sm\:flex-row { flex-direction: row; }
   .sm\:items-center { align-items: center; }
   .sm\:justify-between { justify-content: space-between; }
-  .sm\:w-64 { width: 16rem; }
+  .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sm\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .sm\:p-5 { padding: 1.25rem; }
+  .sm\:p-6 { padding: 1.5rem; }
+  .sm\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
   .sm\:text-2xl { font-size: 1.5rem; line-height: 2rem; }
+  .sm\:text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+  .sm\:text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+  .sm\:gap-3 { gap: 0.75rem; }
+  .sm\:gap-4 { gap: 1rem; }
+  .sm\:w-64 { width: 16rem; }
   .sm\:left-16 { left: 4rem; }
   .sm\:pl-16 { padding-left: 4rem; }
 }
@@ -433,6 +543,12 @@ html, body, #root {
 @media (min-width: 768px) {
   .md\:flex { display: flex; }
   .md\:hidden { display: none; }
+  .md\:flex-row { flex-direction: row; }
+  .md\:items-center { align-items: center; }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .md\:pt-0 { padding-top: 0; }
   .md\:w-20 { width: 5rem; }
   .md\:left-20 { left: 5rem; }
   .md\:pl-20 { padding-left: 5rem; }
@@ -444,4 +560,22 @@ html, body, #root {
   .md\:rounded-3xl { border-radius: 1.5rem; }
   .md\:border { border-width: 1px; }
   .md\:max-h-\[calc\(100vh-6rem\)\] { max-height: calc(100vh - 6rem); }
+}
+
+@media (min-width: 1024px) {
+  .lg\:flex { display: flex; }
+  .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .lg\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .lg\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .lg\:col-span-2 { grid-column: span 2 / span 2; }
+  .lg\:col-span-3 { grid-column: span 3 / span 3; }
+  .lg\:col-span-4 { grid-column: span 4 / span 4; }
+  .lg\:col-span-5 { grid-column: span 5 / span 5; }
+  .lg\:col-span-6 { grid-column: span 6 / span 6; }
+  .lg\:col-span-7 { grid-column: span 7 / span 7; }
+  .lg\:col-span-8 { grid-column: span 8 / span 8; }
+  .lg\:col-span-12 { grid-column: span 12 / span 12; }
+  .lg\:w-64 { width: 16rem; }
 }

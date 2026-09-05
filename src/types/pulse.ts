@@ -154,6 +154,7 @@ export interface PulseDashboardData {
     avatarUrl: string;
     role: string;
     recentContributionCount: number;
+    projectsCount?: number;
     claimStatus: ClaimStatus;
   }>;
   recentContributions: PulseContribution[];
@@ -166,6 +167,7 @@ export interface PulseDashboardData {
     actorDisplayName: string;
     action: string;
     targetName: string;
+    activityType?: 'VERIFICATION' | 'CONTRIBUTION' | 'OPPORTUNITY';
     claimStatus: ClaimStatus;
     evidenceUrl: string;
   }>;

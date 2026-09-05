@@ -54,10 +54,15 @@ export class PulseService {
 
     // Map active contributors from verified registry who have logged contributions
     const activeContributors = verifiedMembers
-      .slice(0, 8)
+      .slice(0, 9)
       .map((member) => {
         const memberContribs = PULSE_CONTRIBUTIONS.filter(
           (c) => c.memberHandle.toLowerCase() === member.normalizedHandle.toLowerCase()
+        );
+        const memberProjects = PULSE_PROJECTS.filter(
+          (p) =>
+            p.leadHandles.map((h) => h.toLowerCase()).includes(member.normalizedHandle.toLowerCase()) ||
+            p.contributorHandles.map((h) => h.toLowerCase()).includes(member.normalizedHandle.toLowerCase())
         );
         return {
           dliId: member.dliId,
@@ -66,6 +71,7 @@ export class PulseService {
           avatarUrl: member.avatarUrl || `https://unavatar.io/x/${member.normalizedHandle}`,
           role: typeof member.role === 'string' ? member.role : 'Core Team',
           recentContributionCount: memberContribs.length || 1,
+          projectsCount: memberProjects.length || 1,
           claimStatus: (member.verificationStatus === 'VERIFIED' ? 'VERIFIED' : 'OBSERVED_PUBLIC_EVIDENCE') as ClaimStatus,
         };
       });
@@ -79,6 +85,7 @@ export class PulseService {
         actorDisplayName: 'George Chahine',
         action: 'verified security invariants on',
         targetName: 'Hacken Security Audit',
+        activityType: 'VERIFICATION' as const,
         claimStatus: 'VERIFIED' as ClaimStatus,
         evidenceUrl: 'https://hacken.io/audits/dlicom/sca-dlicom-token-feb2026/',
       },
@@ -89,6 +96,7 @@ export class PulseService {
         actorDisplayName: 'Jimish Parekh',
         action: 'deployed smart contract update for',
         targetName: '$DLI Staking Vaults on Base',
+        activityType: 'CONTRIBUTION' as const,
         claimStatus: 'VERIFIED' as ClaimStatus,
         evidenceUrl: 'https://whitepaper.dlicom.io/',
       },
@@ -99,6 +107,7 @@ export class PulseService {
         actorDisplayName: 'Mohamed Belal',
         action: 'published Arabic localization guide in',
         targetName: 'MENA Community Hub',
+        activityType: 'CONTRIBUTION' as const,
         claimStatus: 'VERIFIED' as ClaimStatus,
         evidenceUrl: 'https://t.me/DlicomAppOfficial',
       },
@@ -109,16 +118,29 @@ export class PulseService {
         actorDisplayName: 'Oleksandr Samofal',
         action: 'launched ambassador cohort for',
         targetName: 'Dliever Community Program',
+        activityType: 'VERIFICATION' as const,
         claimStatus: 'VERIFIED' as ClaimStatus,
         evidenceUrl: 'https://discord.gg/yZdYa48gQM',
       },
       {
         id: 'act-05',
+        timestamp: '2026-03-01T10:00:00Z',
+        actorHandle: 'dlicomapp',
+        actorDisplayName: 'Dlicom Protocol',
+        action: 'posted new security bounty for',
+        targetName: 'Staking Vaults Security Audit',
+        activityType: 'OPPORTUNITY' as const,
+        claimStatus: 'VERIFIED' as ClaimStatus,
+        evidenceUrl: 'https://github.com/dlicom-nexus',
+      },
+      {
+        id: 'act-06',
         timestamp: '2026-02-28T10:00:00Z',
         actorHandle: '0xzeeve',
         actorDisplayName: 'Zeeve',
         action: 'provisioned redundant RPC telemetry for',
         targetName: 'Base Rollup Infrastructure',
+        activityType: 'CONTRIBUTION' as const,
         claimStatus: 'OBSERVED_PUBLIC_EVIDENCE' as ClaimStatus,
         evidenceUrl: 'https://x.com/DlicomApp',
       },
