@@ -56,6 +56,19 @@ export interface DlicomUser {
   orbitRadius: number; // distance from center
   orbitAngle: number; // angle in degrees
   highlightColor?: string;
+  nodeSize?: number; // visual node diameter in pixels
+  // Personal Circle Membership & Dlicom Classification
+  circleEligible?: boolean;
+  communityClassification?: 'official' | 'community_role' | 'community_friend' | 'candidate' | 'external';
+  // Dlicom Verified Community Provenance
+  dliId?: string;
+  verificationLevel?: string;
+  evidenceSummary?: string;
+  officialSourceUrl?: string;
+  evidenceUrls?: string[];
+  matchExplanation?: string;
+  confidenceScore?: number;
+  sourceFreshness?: string;
 }
 
 export interface NetworkStatsData {
@@ -64,6 +77,8 @@ export interface NetworkStatsData {
   activeToday: number;
   communitiesCount: number;
   avgConnectionScore: number;
+  dlicomVerifiedCount?: number;
+  externalFriendsCount?: number;
 }
 
 export interface ViewportTransform {

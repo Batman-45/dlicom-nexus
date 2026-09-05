@@ -14,7 +14,7 @@ export const CircleOnboarding: React.FC<CircleOnboardingProps> = ({
   onSubmit,
   onLoadDemoPreset,
   initialValue = '',
-  isDevMode = true,
+  isDevMode = false,
 }) => {
   const [handle, setHandle] = useState<string>(initialValue);
   const [validationError, setValidationError] = useState<string | null>(null);

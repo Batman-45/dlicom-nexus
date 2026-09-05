@@ -1,4 +1,5 @@
 import type { DlicomUser, FriendCategory, MutualFriendInfo, NetworkStatsData, RecentActivityItem } from '../../types/circle';
+import type { CommunityMember } from '../community/types';
 
 export interface SocialProfile {
   id: string;
@@ -34,17 +35,43 @@ export interface SocialConnection extends SocialProfile {
   lastActive?: string;
   sparksReceived?: number;
   recentActivity?: RecentActivityItem[];
+  // Personal Circle Membership & Dlicom Classification
+  circleEligible?: boolean;
+  communityClassification?: 'official' | 'community_role' | 'community_friend' | 'candidate' | 'external';
+  // Dlicom Evidence Fields
+  dliId?: string;
+  verificationLevel?: string;
+  evidenceSummary?: string;
+  officialSourceUrl?: string;
+  evidenceUrls?: string[];
+  matchExplanation?: string;
+  confidenceScore?: number;
+  sourceFreshness?: string;
 }
 
 export interface SocialGraphResult {
   profile: SocialProfile;
-  connections: SocialConnection[];
+  connections: SocialConnection[]; // Personal Friend Circle connections (all circle-eligible real connections)
+  circleFriends?: SocialConnection[]; // Explicit alias for personal friend circle
+  rawConnections?: SocialConnection[]; // All analyzed raw X connections
+  rawConnectionsCount?: number;
   stats?: NetworkStatsData;
   isMockData?: boolean;
   isStale?: boolean;
   dataStatus?: string;
   reason?: string;
   fetchedAt: string;
+  // Community Evidence & Classification Breakdown
+  totalCandidatesAnalyzed?: number;
+  circleEligibleCount?: number;
+  matchedMembersCount?: number; // Verified Dlicom members count (official + community role + community friend)
+  officialMatchesCount?: number;
+  communityFriendMatchesCount?: number;
+  candidateMatchesCount?: number;
+  externalFriendsCount?: number;
+  potentialCommunityMembers?: CommunityMember[]; // COMMUNITY_CANDIDATE (separate view)
+  externalAccountsCount?: number; // Filtered accounts
+  matchExplanations?: Record<string, string>;
 }
 
 export interface SocialGraphProvider {
@@ -72,4 +99,16 @@ export interface TransformedConstellationData {
   isMockData: boolean;
   dataStatus?: string;
   reason?: string;
+  potentialCommunityMembers?: CommunityMember[];
+  totalCandidatesAnalyzed?: number;
+  circleEligibleCount?: number;
+  matchedMembersCount?: number;
+  officialMatchesCount?: number;
+  communityFriendMatchesCount?: number;
+  candidateMatchesCount?: number;
+  externalFriendsCount?: number;
+  externalAccountsCount?: number;
+  matchExplanations?: Record<string, string>;
+  rawConnections?: SocialConnection[];
+  rawConnectionsCount?: number;
 }

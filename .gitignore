@@ -32,3 +32,6 @@ server/.env.*
 !server/.env.example
 !.env.example
 
+
+.vercel
+.env*

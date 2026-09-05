@@ -29,14 +29,15 @@ export const FriendMap: React.FC<FriendMapProps> = ({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hoveredUser, setHoveredUser] = useState<DlicomUser | null>(null);
 
-  // Background ambient stars (generated once for stable display)
+  // Background ambient cosmic stars (generated once for stable display)
   const [stars] = useState(() => {
-    return Array.from({ length: 65 }).map((_, i) => ({
+    return Array.from({ length: 90 }).map((_, i) => ({
       id: i,
-      x: (Math.sin(i * 99) * 0.5 + 0.5) * 2000 - 1000,
-      y: (Math.cos(i * 77) * 0.5 + 0.5) * 2000 - 1000,
+      x: (Math.sin(i * 99) * 0.5 + 0.5) * 2400 - 1200,
+      y: (Math.cos(i * 77) * 0.5 + 0.5) * 2400 - 1200,
       size: (i % 3) + 1,
-      opacity: 0.2 + (i % 5) * 0.15,
+      opacity: 0.15 + (i % 5) * 0.12,
+      color: i % 3 === 0 ? '#c084fc' : i % 3 === 1 ? '#38bdf8' : '#ffffff',
       pulse: i % 4 === 0,
     }));
   });
@@ -67,29 +68,42 @@ export const FriendMap: React.FC<FriendMapProps> = ({
     setIsDragging(false);
   }, []);
 
-  // Handle Wheel Zoom
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-    const newScale = Math.min(Math.max(0.35, transform.scale * zoomFactor), 2.2);
+  const transformRef = useRef(transform);
+  useEffect(() => {
+    transformRef.current = transform;
+  }, [transform]);
 
-    // Zoom centered on pointer
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
+  // Attach native non-passive wheel listener to allow e.preventDefault() without passive warning
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheelNative = (e: WheelEvent) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+      const currentTransform = transformRef.current;
+      const newScale = Math.min(Math.max(0.35, currentTransform.scale * zoomFactor), 2.2);
+
+      const rect = container.getBoundingClientRect();
       const mouseX = e.clientX - rect.left - rect.width / 2;
       const mouseY = e.clientY - rect.top - rect.height / 2;
 
-      const scaleChange = newScale - transform.scale;
-      const newX = transform.x - (mouseX - transform.x) * (scaleChange / transform.scale);
-      const newY = transform.y - (mouseY - transform.y) * (scaleChange / transform.scale);
+      const scaleChange = newScale - currentTransform.scale;
+      const newX = currentTransform.x - (mouseX - currentTransform.x) * (scaleChange / currentTransform.scale);
+      const newY = currentTransform.y - (mouseY - currentTransform.y) * (scaleChange / currentTransform.scale);
 
       onTransformChange({
         x: newX,
         y: newY,
         scale: newScale,
       });
-    }
-  };
+    };
+
+    container.addEventListener('wheel', handleWheelNative, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', handleWheelNative);
+    };
+  }, [onTransformChange]);
 
   // Touch Support
   const [touchDistance, setTouchDistance] = useState<number | null>(null);
@@ -151,24 +165,27 @@ export const FriendMap: React.FC<FriendMapProps> = ({
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  // Orbit Tiers radii
+  // Subtle organic cosmic orbit radii (ethereal guide bands)
   const orbitTiers = [
-    { radius: 210, label: 'Inner Circle' },
-    { radius: 345, label: 'Collaborators' },
-    { radius: 495, label: 'Extended Network' },
+    { radius: 220, label: 'Inner Orbit' },
+    { radius: 320, label: 'Mid Orbit' },
+    { radius: 430, label: 'Outer Orbit' },
   ];
 
   return (
     <div
       ref={containerRef}
       onMouseDown={handleMouseDown}
-      onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className={`relative w-full h-full overflow-hidden cosmic-canvas-bg ambient-grid select-none ${
+      className={`relative w-full h-full overflow-hidden select-none ${
         isDragging ? 'cursor-grabbing' : 'cursor-grab'
       }`}
+      style={{
+        background:
+          'radial-gradient(circle at 50% 50%, #110c26 0%, #080614 45%, #05030b 100%)',
+      }}
     >
       {/* Centered World Viewport */}
       <div
@@ -178,7 +195,19 @@ export const FriendMap: React.FC<FriendMapProps> = ({
           transition: isDragging ? 'none' : 'transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
-        {/* Background Ambient Stars */}
+        {/* Deep Cosmic Nebula Backing centered on YOU */}
+        <div
+          className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+          style={{
+            width: '1000px',
+            height: '1000px',
+            background:
+              'radial-gradient(circle, rgba(168, 85, 247, 0.16) 0%, rgba(56, 189, 248, 0.08) 35%, transparent 70%)',
+            filter: 'blur(50px)',
+          }}
+        />
+
+        {/* Ambient Twinkling Stars */}
         <div className="absolute inset-0 pointer-events-none">
           {stars.map((s) => (
             <div
@@ -188,15 +217,15 @@ export const FriendMap: React.FC<FriendMapProps> = ({
                 width: `${s.size}px`,
                 height: `${s.size}px`,
                 opacity: s.opacity,
+                backgroundColor: s.color,
+                boxShadow: s.size > 2 ? `0 0 6px ${s.color}` : 'none',
               }}
-              className={`rounded-full bg-cyan-200 ${
-                s.pulse ? 'animate-ping' : ''
-              }`}
+              className={`rounded-full ${s.pulse ? 'animate-ping' : ''}`}
             />
           ))}
         </div>
 
-        {/* Orbit Guide Rings */}
+        {/* Ethereal Subtle Cosmic Orbit Dust Rings */}
         {showOrbits && (
           <div className="absolute inset-0 pointer-events-none">
             {orbitTiers.map((tier, idx) => (
@@ -206,10 +235,12 @@ export const FriendMap: React.FC<FriendMapProps> = ({
                   width: `${tier.radius * 2}px`,
                   height: `${tier.radius * 2}px`,
                   transform: `translate(-${tier.radius}px, -${tier.radius}px)`,
+                  borderColor: 'rgba(168, 85, 247, 0.08)',
+                  boxShadow: '0 0 20px rgba(168, 85, 247, 0.03)',
                 }}
-                className="absolute rounded-full border border-cyan-500/15"
+                className="absolute rounded-full border border-dashed"
               >
-                <span className="absolute top-1 left-1/2 -translate-x-1/2 text-[9px] uppercase tracking-widest text-cyan-400/40 font-mono">
+                <span className="absolute top-1 left-1/2 -translate-x-1/2 text-[8px] uppercase tracking-widest text-purple-400/25 font-mono">
                   {tier.label}
                 </span>
               </div>
@@ -217,10 +248,10 @@ export const FriendMap: React.FC<FriendMapProps> = ({
           </div>
         )}
 
-        {/* SVG Connection Lines Layer */}
+        {/* SVG Connection Lines Layer (Strictly behind nodes) */}
         <svg
-          className="absolute -top-[1200px] -left-[1200px] w-[2400px] h-[2400px] pointer-events-none overflow-visible"
-          viewBox="-1200 -1200 2400 2400"
+          className="absolute -top-[1600px] -left-[1600px] w-[3200px] h-[3200px] pointer-events-none overflow-visible"
+          viewBox="-1600 -1600 3200 3200"
         >
           {friends.map((friend) => (
             <ConnectionLine
@@ -233,7 +264,7 @@ export const FriendMap: React.FC<FriendMapProps> = ({
           ))}
         </svg>
 
-        {/* Surrounding Friend Nodes */}
+        {/* Surrounding Real Connection Nodes */}
         {friends.map((friend) => (
           <FriendNode
             key={friend.id}
@@ -247,7 +278,7 @@ export const FriendMap: React.FC<FriendMapProps> = ({
           />
         ))}
 
-        {/* Central "YOU" Dominant Node */}
+        {/* Central Dominant "YOU" Hero Node (Rendered last for highest z-index) */}
         <FriendNode
           user={currentUser}
           isSelected={selectedUser?.id === currentUser.id}

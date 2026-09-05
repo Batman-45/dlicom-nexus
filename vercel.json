@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/pulse/members/:username",
+      "destination": "/api/pulse/member?username=:username"
+    },
+    {
       "source": "/((?!api/.*).*)",
       "destination": "/index.html"
     }

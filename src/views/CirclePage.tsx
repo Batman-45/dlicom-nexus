@@ -122,7 +122,8 @@ export const CirclePage: React.FC<CirclePageProps> = ({ onNavigate }) => {
       console.log('[circle] RAW X CONNECTIONS:', rawCount);
       console.log('[circle] VERIFIED DLICOM MATCHES:', verifiedDlicomCount);
       console.log('[circle] CIRCLE NODES:', circleFriendsCount);
-      console.log('[circle] VERIFIED GRAPH NODES GENERATED:', circleFriendsCount);
+      console.log('[circle] CIRCLE FRIENDS GRAPH NODES GENERATED:', circleFriendsCount);
+      console.log('[circle] VERIFIED DLICOM NODES:', verifiedDlicomCount);
       console.log('[circle] GRAPH GENERATED:', circleFriendsCount, 'circle friends | verified Dlicom:', verifiedDlicomCount, '| isMockData:', graphResult.isMockData);
 
       console.log('[circle-debug] FINAL GRAPH NODES:', totalGraphNodes, `(1 central YOU + ${circleFriendsCount} friends)`);
@@ -437,7 +438,7 @@ export const CirclePage: React.FC<CirclePageProps> = ({ onNavigate }) => {
           <div className="glass-panel px-4 py-2 rounded-full border border-purple-500/30 bg-slate-950/90 shadow-2xl flex items-center gap-2 pointer-events-auto backdrop-blur-md">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
             <p className="text-xs text-slate-200 font-sans">
-              Personal Friend Circle generated from your observable public X interactions ({friends.length} friend{friends.length === 1 ? '' : 's'}).
+              Personal Friend Circle: {friends.length} friend{friends.length === 1 ? '' : 's'} ({friends.filter(f => f.communityClassification === 'official' || f.communityClassification === 'community_role' || f.communityClassification === 'community_friend').length} Dlicom verified � {friends.filter(f => f.communityClassification === 'external' || !f.communityClassification).length} external).
             </p>
             {onNavigate && (
               <button

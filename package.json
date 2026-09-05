@@ -8,6 +8,14 @@
     "dev:proxy": "node server/index.js",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "verify:pulse": "node scripts/verify-pulse-v1.js",
+    "verify:community": "node --experimental-strip-types scripts/verify-community.js",
+    "verify-rohit": "node --experimental-strip-types scripts/verify-real-rohit-flow.js",
+    "verify:fixes": "node --experimental-strip-types scripts/verify-production-fixes.js",
+    "verify:circle-flow": "node --experimental-strip-types scripts/verify-circle-data-flow.js",
+    "verify:personal-circle": "node --experimental-strip-types scripts/verify-personal-circle.js",
+    "verify:circle-isolation": "node --experimental-strip-types scripts/verify-circle-isolation.js",
+    "audit:security": "node scripts/audit-bundle.js",
     "preview": "vite preview"
   },
   "dependencies": {

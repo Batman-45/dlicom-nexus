@@ -12,17 +12,19 @@ let mockProviderInstance: MockSocialGraphProvider | null = null;
 let productionProviderInstance: XApiSocialGraphProvider | null = null;
 
 export function getSocialGraphProvider(): SocialGraphProvider {
+  const isDev = !!import.meta.env.DEV;
   const rawEnv = import.meta.env.VITE_USE_MOCK_DATA;
-  // Production default is REAL DATA; mock mode is only enabled when explicitly set to 'true'
-  const useMock = rawEnv === 'true';
+  // Strict production rule: mock mode is ONLY allowed in local development when explicitly set to 'true'.
+  // In production builds (PROD), mock mode is NEVER permitted under any circumstance.
+  const useMock = isDev && rawEnv === 'true';
 
   // Safe diagnostics — never logs credentials
-  console.log('[provider] VITE_USE_MOCK_DATA =', JSON.stringify(rawEnv), '| useMock =', useMock);
+  console.log('[provider] DEV =', isDev, '| VITE_USE_MOCK_DATA =', JSON.stringify(rawEnv), '| useMock =', useMock);
 
   if (useMock) {
     if (!mockProviderInstance) {
       mockProviderInstance = new MockSocialGraphProvider();
-      console.log('[provider] MODE: MOCK — zero X API requests will be made');
+      console.log('[provider] MODE: MOCK (DEV ONLY) — zero X API requests will be made');
     }
     return mockProviderInstance;
   }

@@ -4,7 +4,6 @@ import {
   X,
   Sparkles,
   Users,
-  Send,
   ExternalLink,
   ShieldCheck,
   MapPin,
@@ -23,6 +22,7 @@ interface FriendProfileProps {
   onClose: () => void;
   onSelectMutual?: (userId: string) => void;
   isMockData?: boolean;
+  onNavigate?: (route: string) => void;
 }
 
 export const FriendProfile: React.FC<FriendProfileProps> = ({
@@ -30,6 +30,7 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
   onClose,
   onSelectMutual,
   isMockData = false,
+  onNavigate,
 }) => {
   const [sparkCount, setSparkCount] = useState<number>(0);
   const [hasSparked, setHasSparked] = useState<boolean>(false);
@@ -175,6 +176,21 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
                   Verified on X
                 </span>
               ) : null}
+              {user.communityClassification && !isCenter && (
+                <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full border ${
+                  user.communityClassification === 'official'
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                    : user.communityClassification === 'community_role'
+                    ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                    : user.communityClassification === 'community_friend'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                    : 'bg-slate-500/20 text-slate-300 border-slate-500/30'
+                }`}>
+                  {user.communityClassification === 'official' ? 'Dlicom Official' :
+                   user.communityClassification === 'community_role' ? 'Dlicom Role' :
+                   user.communityClassification === 'community_friend' ? 'Dlicom Friend' : 'Public X Peer'}
+                </span>
+              )}
             </div>
             <p className="text-xs font-mono text-cyan-400">@{user.username}</p>
           </div>
@@ -211,6 +227,100 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
               Joined {user.joinedDate}
             </span>
           </div>
+
+          {/* Verified Dlicom Community Match Explanation Panel */}
+          {!isCenter && (user.dliId || user.evidenceSummary) && (
+            <div className="p-3.5 rounded-2xl bg-purple-950/40 border border-purple-500/30 mb-3.5 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-purple-400" />
+                  {user.verificationLevel === 'COMMUNITY_FRIEND' ? 'Dlicom Community Friend' : 'Verified Dlicom Connection'}
+                </span>
+                {user.dliId && (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-200 border border-purple-500/30 font-bold">
+                    {user.dliId}
+                  </span>
+                )}
+              </div>
+
+              {/* Interaction Trigger */}
+              <div className="text-xs">
+                <span className="text-[10px] font-mono uppercase text-slate-400 block mb-0.5">
+                  1. Observable Public X Interaction
+                </span>
+                <p className="text-slate-200 leading-snug">
+                  Interacted via <strong className="text-white">{(user.interactionTypes && user.interactionTypes.length > 0) ? user.interactionTypes.join(', ') : 'public timeline activity'}</strong>
+                </p>
+              </div>
+
+              {/* Verified Identity & Role */}
+              <div className="text-xs">
+                <span className="text-[10px] font-mono uppercase text-slate-400 block mb-0.5">
+                  2. Matched {user.verificationLevel === 'COMMUNITY_FRIEND' ? 'Community Friend' : 'Verified Identity'}
+                </span>
+                <p className="text-slate-200 leading-snug">
+                  <strong className="text-white">{user.displayName}</strong> (@{user.username}) · <span className="text-purple-300 font-medium">{user.role}</span>
+                </p>
+              </div>
+
+              {/* Verification Evidence */}
+              <div className="text-xs">
+                <span className="text-[10px] font-mono uppercase text-slate-400 block mb-0.5">
+                  {user.verificationLevel === 'COMMUNITY_FRIEND' ? '3. Community Evidence Signals' : '3. Official Verification Evidence'}
+                </span>
+                <p className="text-slate-300 leading-relaxed text-[11px]">
+                  {user.evidenceSummary || 'Independently verified official Dlicom community leadership identity.'}
+                </p>
+              </div>
+
+              {/* Evidence Source URL */}
+              {user.officialSourceUrl && (
+                <div className="text-xs">
+                  <span className="text-[10px] font-mono uppercase text-slate-400 block mb-0.5">
+                    {user.verificationLevel === 'COMMUNITY_FRIEND' ? '4. Public Evidence Source' : '4. Official Evidence Source'}
+                  </span>
+                  <a
+                    href={user.officialSourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-cyan-300 hover:underline font-mono text-[11px] flex items-center gap-1 break-all"
+                  >
+                    <span>{user.officialSourceUrl}</span>
+                    <ExternalLink className="w-3 h-3 shrink-0" />
+                  </a>
+                </div>
+              )}
+
+              {/* Passport CTA */}
+              {user.dliId && onNavigate && (
+                <button
+                  onClick={() => onNavigate(`/passport/${user.dliId}`)}
+                  className="w-full mt-2 py-2 px-3 rounded-xl bg-purple-600/40 hover:bg-purple-600/60 border border-purple-500/40 text-purple-200 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>View Sovereign Identity Passport</span>
+                </button>
+              )}
+            </div>
+          )}
+
+                    {/* External Connection Provenance Panel */}
+          {!isCenter && !user.dliId && !user.evidenceSummary && (
+            <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-white/10 mb-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-cyan-400" />
+                  Observable X Peer Connection
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10">
+                  External
+                </span>
+              </div>
+              <p className="text-slate-300 text-[11px] leading-relaxed">
+                Included in your Personal Circle based on real public X interactions ({user.interactionTypes && user.interactionTypes.length > 0 ? user.interactionTypes.join(', ') : 'timeline activity'}). External accounts remain fully visible as authentic members of your social graph.
+              </p>
+            </div>
+          )}
 
           {/* Interaction Score Meter */}
           {!isCenter && (
@@ -364,53 +474,53 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
           <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
             {!isCenter ? (
               <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() =>
-                    isMockData
-                      ? alert(`[Demo Preview] Direct messaging with @${user.username} is simulated.`)
-                      : alert(`Opening encrypted Dlicom direct chat with @${user.username}`)
-                  }
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-display font-semibold text-xs transition-all shadow-lg shadow-cyan-500/20 cursor-pointer"
+                <a
+                  href={`https://x.com/${user.username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-display font-semibold text-xs transition-all border border-white/15 cursor-pointer"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Message</span>
-                </button>
-                <button
-                  onClick={() =>
-                    isMockData
-                      ? alert(`[Demo Mode] Pinned @${user.username} (local preview).`)
-                      : alert(`Pinned @${user.username} to your local workspace`)
-                  }
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/15 text-white font-display font-semibold text-xs transition-all cursor-pointer"
-                >
-                  <Heart className="w-3.5 h-3.5 text-pink-400" />
-                  <span>Pin Contact</span>
-                </button>
+                  <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>X Profile</span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                </a>
+                {user.dliId && onNavigate ? (
+                  <button
+                    onClick={() => onNavigate(`/passport/${user.dliId}`)}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-display font-semibold text-xs transition-all shadow-lg shadow-purple-500/20 cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>View Passport</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setIsFavorite(!isFavorite)}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/15 text-white font-display font-semibold text-xs transition-all cursor-pointer"
+                  >
+                    <Heart className={`w-3.5 h-3.5 ${isFavorite ? 'text-pink-400 fill-pink-400' : 'text-slate-400'}`} />
+                    <span>{isFavorite ? 'Pinned' : 'Pin Contact'}</span>
+                  </button>
+                )}
               </div>
             ) : (
               <button
-                onClick={() =>
-                  isMockData
-                    ? alert('[Demo Mode] Profile customizer preview.')
-                    : alert('Opening Circle & Profile Customizer')
-                }
+                onClick={() => onNavigate?.('/registry')}
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-slate-950 font-display font-semibold text-xs transition-all shadow-lg shadow-cyan-500/20 cursor-pointer"
               >
-                <span>Edit Dlicom Profile & Circle</span>
+                <ShieldCheck className="w-4 h-4" />
+                <span>Explore Verified Dlicom Registry</span>
               </button>
             )}
 
-            <button
-              onClick={() =>
-                isMockData
-                  ? alert(`[Demo Preview] @${user.username}'s on-chain profile is simulated in offline mock mode. No blockchain record exists.`)
-                  : alert(`Exploring @${user.username}'s on-chain Dlicom profile & social graph`)
-              }
-              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-[11px] text-slate-300 hover:text-white transition-colors cursor-pointer"
-            >
-              <span>{isMockData ? 'View On-Chain Profile (Demo Preview)' : 'View On-Chain Profile'}</span>
-              <ExternalLink className="w-3 h-3" />
-            </button>
+            {onNavigate && (
+              <button
+                onClick={() => onNavigate('/registry')}
+                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-[11px] text-slate-300 hover:text-white transition-colors cursor-pointer"
+              >
+                <span>Browse All Verified Community Identities</span>
+                <ExternalLink className="w-3 h-3" />
+              </button>
+            )}
           </div>
         </div>
       </div>

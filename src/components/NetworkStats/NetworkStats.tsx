@@ -1,6 +1,6 @@
 import React from 'react';
 import type { NetworkStatsData } from '../../types/circle';
-import { Users, Globe, Radio, Sparkles } from 'lucide-react';
+import { Users, Globe, Sparkles } from 'lucide-react';
 
 interface NetworkStatsProps {
   stats: NetworkStatsData;
@@ -8,67 +8,63 @@ interface NetworkStatsProps {
 
 export const NetworkStats: React.FC<NetworkStatsProps> = ({ stats }) => {
   return (
-    <div className="fixed bottom-4 left-4 z-30 pointer-events-none hidden sm:block">
-      <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl glass-panel pointer-events-auto border border-white/10 shadow-2xl">
-        {/* Friends */}
-        <div className="flex items-center gap-2 pr-3 border-r border-white/10">
-          <div className="w-7 h-7 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
-            <Users className="w-3.5 h-3.5" />
-          </div>
-          <div>
-            <span className="block font-display font-bold text-sm text-white leading-tight">
-              {stats.totalFriends}
-            </span>
-            <span className="text-[9px] uppercase tracking-wider text-slate-400">
-              X Interactions
-            </span>
-          </div>
+    <div className="fixed bottom-4 left-4 z-20 pointer-events-none hidden md:block">
+      <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full glass-panel pointer-events-auto border border-white/10 shadow-2xl backdrop-blur-2xl text-[11px]">
+        {/* Total Interactions */}
+        <div className="flex items-center gap-1.5 pr-2.5 border-r border-white/10">
+          <Users className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="font-mono font-bold text-white">
+            {stats.totalFriends}
+          </span>
+          <span className="text-slate-400 text-[10px]">
+            Connections
+          </span>
         </div>
 
-        {/* Mutuals / Interactions */}
-        <div className="flex items-center gap-2 pr-3 border-r border-white/10">
-          <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
-            <Sparkles className="w-3.5 h-3.5" />
+        {/* Dlicom Verified Pill */}
+        {stats.dlicomVerifiedCount !== undefined && stats.dlicomVerifiedCount > 0 && (
+          <div className="flex items-center gap-1.5 pr-2.5 border-r border-white/10 text-amber-300">
+            <span className="font-mono font-bold">{stats.dlicomVerifiedCount}</span>
+            <span className="text-[10px] text-amber-300/80">Verified</span>
           </div>
-          <div>
-            <span className="block font-display font-bold text-sm text-white leading-tight">
-              {stats.mutualConnections}
-            </span>
-            <span className="text-[9px] uppercase tracking-wider text-slate-400">
-              Activity Score
-            </span>
-          </div>
+        )}
+
+        {/* Activity Score */}
+        <div className="flex items-center gap-1.5 pr-2.5 border-r border-white/10">
+          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+          <span className="font-mono font-bold text-white">
+            {stats.mutualConnections}
+          </span>
+          <span className="text-slate-400 text-[10px]">
+            Events
+          </span>
         </div>
 
-        {/* Communities */}
-        <div className="flex items-center gap-2 pr-3 border-r border-white/10">
-          <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-            <Globe className="w-3.5 h-3.5" />
-          </div>
-          <div>
-            <span className="block font-display font-bold text-sm text-white leading-tight">
+        {/* Guilds */}
+        {stats.communitiesCount > 0 && (
+          <div className="flex items-center gap-1.5 pr-2.5 border-r border-white/10">
+            <Globe className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="font-mono font-bold text-white">
               {stats.communitiesCount}
             </span>
-            <span className="text-[9px] uppercase tracking-wider text-slate-400">
+            <span className="text-slate-400 text-[10px]">
               Guilds
             </span>
           </div>
-        </div>
+        )}
 
-        {/* Active Today */}
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 relative">
-            <Radio className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-          </div>
-          <div>
-            <span className="block font-display font-bold text-sm text-emerald-400 leading-tight">
-              {stats.activeToday}
-            </span>
-            <span className="text-[9px] uppercase tracking-wider text-slate-400">
-              Active Now
-            </span>
-          </div>
+        {/* Active Now */}
+        <div className="flex items-center gap-1.5">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="font-mono font-bold text-emerald-400">
+            {stats.activeToday}
+          </span>
+          <span className="text-slate-400 text-[10px]">
+            Live
+          </span>
         </div>
       </div>
     </div>
