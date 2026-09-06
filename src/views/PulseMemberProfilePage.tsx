@@ -137,7 +137,7 @@ export const PulseMemberProfilePage: React.FC<PulseMemberProfilePageProps> = ({
     );
   }
 
-  const { identity, roles, skills, projects, contributions, achievements, communityParticipation, evidenceSummary, dliId } = profile;
+  const { identity, roles, skills, projects, contributions, achievements, communityParticipation, evidenceSummary, dliId, timeline = [] } = profile;
   const primaryRole = roles[0];
 
   return (
@@ -548,6 +548,65 @@ export const PulseMemberProfilePage: React.FC<PulseMemberProfilePageProps> = ({
                       <ClaimBadge status={ach.claimStatus} evidenceUrl={ach.evidenceUrl} size="sm" />
                     </div>
                   ))}
+                </div>
+              </section>
+            )}
+
+            {/* Evidence-Backed Activity Timeline */}
+            {timeline.length > 0 && (
+              <section className="p-5 sm:p-6 rounded-3xl bg-[#0e0c1f] border border-white/10 shadow-lg space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-cyan-400" />
+                    <h2 className="text-sm font-bold text-white">
+                      Evidence-Backed Activity Timeline ({timeline.length})
+                    </h2>
+                  </div>
+                  <span className="text-[10px] font-mono text-cyan-400 uppercase">Public Provenance</span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {timeline.map((event) => {
+                    const source = event.sourceUrl || event.evidenceUrl;
+                    const status = event.claimTier || event.claimStatus || 'VERIFIED';
+                    const eventType = event.eventType || event.activityType || 'CONTRIBUTION';
+
+                    return (
+                      <div
+                        key={event.id}
+                        className="p-3.5 rounded-2xl bg-white/5 border border-white/5 hover:border-cyan-500/25 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
+                      >
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                              {eventType.replace('_', ' ')}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-400">
+                              {new Date(event.timestamp).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-200 leading-snug">
+                            {event.explanation || `${event.action || ''} ${event.targetName || ''}`}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                          <ClaimBadge status={status} size="sm" />
+                          {source && (
+                            <a
+                              href={source}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] font-mono text-cyan-300 hover:underline flex items-center gap-0.5 p-1 rounded-lg hover:bg-white/5"
+                            >
+                              <span>Source</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
             )}

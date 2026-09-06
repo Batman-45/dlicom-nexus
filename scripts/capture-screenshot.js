@@ -51,8 +51,11 @@ async function capture() {
     await send('Page.enable');
     await send('Network.enable');
 
-    await send('Page.navigate', { url: 'http://127.0.0.1:5173/' });
+    await send('Page.navigate', { url: 'http://localhost:5173/' });
     await new Promise((r) => setTimeout(r, 2000));
+
+    const currentBrainDir = 'C:\\Users\\SHREE\\.gemini\\antigravity-ide\\brain\\2f86f3ab-6dea-4108-8dc5-b6b1f76db524';
+    if (!fs.existsSync(currentBrainDir)) fs.mkdirSync(currentBrainDir, { recursive: true });
 
     // 1. Desktop 1440x900 Top View
     await send('Emulation.setDeviceMetricsOverride', {
@@ -65,21 +68,21 @@ async function capture() {
 
     const shot1 = await send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(process.cwd(), 'pulse_dashboard_desktop_1440.png'), Buffer.from(shot1.result.data, 'base64'));
-    fs.writeFileSync('C:\\Users\\SHREE\\.gemini\\antigravity-ide\\brain\\12c45e98-3554-41bb-bba7-29a6697fea41\\pulse_dashboard_desktop_1440.png', Buffer.from(shot1.result.data, 'base64'));
+    fs.writeFileSync(path.join(currentBrainDir, 'pulse_dashboard_desktop_1440.png'), Buffer.from(shot1.result.data, 'base64'));
 
     // 2. Desktop Scrolled to Middle (Contributions & Activity)
-    await send('Runtime.evaluate', { expression: 'window.scrollTo(0, 680)' });
+    await send('Runtime.evaluate', { expression: 'window.scrollTo(0, 500)' });
     await new Promise((r) => setTimeout(r, 400));
     const shotScrolled = await send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(process.cwd(), 'pulse_dashboard_desktop_scrolled.png'), Buffer.from(shotScrolled.result.data, 'base64'));
-    fs.writeFileSync('C:\\Users\\SHREE\\.gemini\\antigravity-ide\\brain\\12c45e98-3554-41bb-bba7-29a6697fea41\\pulse_dashboard_desktop_scrolled.png', Buffer.from(shotScrolled.result.data, 'base64'));
+    fs.writeFileSync(path.join(currentBrainDir, 'pulse_dashboard_desktop_scrolled.png'), Buffer.from(shotScrolled.result.data, 'base64'));
 
-    // 3. Desktop Scrolled to Opportunities & Milestones
-    await send('Runtime.evaluate', { expression: 'document.getElementById("opportunities")?.scrollIntoView()' });
+    // 3. Desktop Scrolled to Contributions, Milestones & Contributor Strip
+    await send('Runtime.evaluate', { expression: 'window.scrollTo(0, 1050)' });
     await new Promise((r) => setTimeout(r, 400));
     const shotOpp = await send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(process.cwd(), 'pulse_dashboard_desktop_opportunities.png'), Buffer.from(shotOpp.result.data, 'base64'));
-    fs.writeFileSync('C:\\Users\\SHREE\\.gemini\\antigravity-ide\\brain\\12c45e98-3554-41bb-bba7-29a6697fea41\\pulse_dashboard_desktop_opportunities.png', Buffer.from(shotOpp.result.data, 'base64'));
+    fs.writeFileSync(path.join(currentBrainDir, 'pulse_dashboard_desktop_opportunities.png'), Buffer.from(shotOpp.result.data, 'base64'));
 
     // 4. Mobile 390x844
     await send('Runtime.evaluate', { expression: 'window.scrollTo(0, 0)' });
@@ -92,7 +95,7 @@ async function capture() {
     await new Promise((r) => setTimeout(r, 400));
     const shot2 = await send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(process.cwd(), 'pulse_dashboard_mobile_390.png'), Buffer.from(shot2.result.data, 'base64'));
-    fs.writeFileSync('C:\\Users\\SHREE\\.gemini\\antigravity-ide\\brain\\12c45e98-3554-41bb-bba7-29a6697fea41\\pulse_dashboard_mobile_390.png', Buffer.from(shot2.result.data, 'base64'));
+    fs.writeFileSync(path.join(currentBrainDir, 'pulse_dashboard_mobile_390.png'), Buffer.from(shot2.result.data, 'base64'));
 
     console.log('All 4 screenshot views captured successfully!');
     ws.close();

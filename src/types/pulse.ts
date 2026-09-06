@@ -1,5 +1,5 @@
 /**
- * Dlicom Pulse — Community Intelligence & Contribution Hub Data Models
+ * Dlicom Pulse V1.1 — Live Community Intelligence & Contribution Hub Data Models
  *
  * Enforces strict 3-tier claim distinction across all community entities:
  * 1. VERIFIED: Formally confirmed by official Dlicom properties (dlicom.io, whitepaper, Hacken audit, Base contracts).
@@ -11,6 +11,34 @@ export type ClaimStatus =
   | 'VERIFIED'
   | 'OBSERVED_PUBLIC_EVIDENCE'
   | 'UNVERIFIED';
+
+export type PulseFreshnessStatus = 'FRESH' | 'STALE' | 'DEGRADED';
+
+export type PulseActivityEventType =
+  | 'VERIFICATION'
+  | 'CONTRIBUTION'
+  | 'OPPORTUNITY'
+  | 'PROJECT_ACTIVITY'
+  | 'AUDIT_UPDATE';
+
+export interface PulseActivityEvent {
+  id: string;
+  timestamp: string;
+  eventType: PulseActivityEventType;
+  memberOrProjectRef: string;
+  claimTier: ClaimStatus;
+  explanation: string;
+  sourceUrl: string;
+
+  // Backward-compatibility and UI convenience fields
+  actorHandle?: string;
+  actorDisplayName?: string;
+  action?: string;
+  targetName?: string;
+  activityType?: PulseActivityEventType;
+  claimStatus?: ClaimStatus;
+  evidenceUrl?: string;
+}
 
 export interface ClaimEvidence {
   status: ClaimStatus;
@@ -72,19 +100,26 @@ export interface PulseAchievement {
   badgeIcon?: string;
 }
 
+export type OpportunityStatus = 'ACTIVE' | 'EXPIRED' | 'UNKNOWN' | 'OPEN' | 'IN_REVIEW' | 'FILLED';
+
 export interface PulseOpportunity {
   id: string;
   title: string;
   projectId: string;
   projectName: string;
   type: 'BOUNTY' | 'CORE_ROLE' | 'CONTRIBUTION_CALL' | 'AMBASSADOR';
-  skillsRequired: string[];
-  description: string;
-  status: 'OPEN' | 'IN_REVIEW' | 'FILLED';
+  status: OpportunityStatus;
   reward?: string;
+  currency?: 'USD' | 'USDT' | 'DLI' | 'USDC';
+  requiredSkills: string[];
+  skillsRequired: string[]; // backward-compatible alias
+  description: string;
+  sourceUrl: string;
   applyUrl: string;
+  publishedDate: string;
+  postedAt?: string; // backward-compatible alias
+  expiryDate?: string;
   claimStatus: ClaimStatus;
-  postedAt: string;
 }
 
 export interface MemberSkill {
@@ -127,6 +162,7 @@ export interface MemberProfileData {
   contributions: PulseContribution[];
   achievements: PulseAchievement[];
   communityParticipation: CommunityParticipationRecord;
+  timeline?: PulseActivityEvent[];
   evidenceSummary: {
     confidenceScore: number;
     verificationLevel: string;
@@ -135,6 +171,20 @@ export interface MemberProfileData {
     authorityLevel: string;
     whyVerified: string;
   };
+}
+
+export interface PulseSourceHealth {
+  sourceId: string;
+  sourceName: string;
+  url: string;
+  lastCheckedAt: string;
+  lastSuccessfulCheck: string;
+  failureCount: number;
+  status: 'HEALTHY' | 'DEGRADED' | 'COOLDOWN';
+  freshness: PulseFreshnessStatus;
+  httpStatus: number;
+  cooldownUntil?: string;
+  error?: string;
 }
 
 export interface PulseDashboardData {
@@ -160,16 +210,7 @@ export interface PulseDashboardData {
   recentContributions: PulseContribution[];
   projects: PulseProject[];
   achievements: PulseAchievement[];
-  communityActivity: Array<{
-    id: string;
-    timestamp: string;
-    actorHandle: string;
-    actorDisplayName: string;
-    action: string;
-    targetName: string;
-    activityType?: 'VERIFICATION' | 'CONTRIBUTION' | 'OPPORTUNITY';
-    claimStatus: ClaimStatus;
-    evidenceUrl: string;
-  }>;
+  communityActivity: PulseActivityEvent[];
   opportunities: PulseOpportunity[];
+  sourceHealth?: PulseSourceHealth[];
 }

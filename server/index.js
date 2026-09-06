@@ -108,6 +108,8 @@ import pulseProjectsHandler from '../api/pulse/projects.js';
 import pulseMembersHandler from '../api/pulse/members.js';
 import pulseOpportunitiesHandler from '../api/pulse/opportunities.js';
 import pulseMemberHandler from '../api/pulse/member.js';
+import pulseActivityHandler from '../api/pulse/activity.js';
+import pulseHealthHandler from '../api/pulse/health.js';
 
 // Serve both standard Vercel serverless path and legacy proxy path
 app.get('/api/x/users/:username/connections', handleConnections);
@@ -130,6 +132,8 @@ app.get('/api/pulse/members/:username', (req, res) => {
 });
 app.get('/api/pulse/member', (req, res) => pulseMemberHandler(req, res));
 app.get('/api/pulse/opportunities', (req, res) => pulseOpportunitiesHandler(req, res));
+app.get('/api/pulse/activity', (req, res) => pulseActivityHandler(req, res));
+app.get('/api/pulse/health', (req, res) => pulseHealthHandler(req, res));
 
 app.listen(port, () => {
   console.log(`Dlicom Pulse Local Dev Server running on http://localhost:${port}`);
@@ -140,6 +144,8 @@ app.listen(port, () => {
   console.log(`  - GET /api/pulse/members`);
   console.log(`  - GET /api/pulse/members/:username`);
   console.log(`  - GET /api/pulse/opportunities`);
+  console.log(`  - GET /api/pulse/activity`);
+  console.log(`  - GET /api/pulse/health`);
   console.log(`  - GET /api/community/members`);
   console.log(`  - GET /api/community/candidates`);
   console.log(`  - GET /api/community/audit`);

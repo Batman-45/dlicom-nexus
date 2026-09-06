@@ -9,6 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "verify:pulse": "node scripts/verify-pulse-v1.js",
+    "verify:pulse:v1-1": "node --experimental-strip-types scripts/test-pulse-v1-1.js",
     "verify:community": "node --experimental-strip-types scripts/verify-community.js",
     "verify-rohit": "node --experimental-strip-types scripts/verify-real-rohit-flow.js",
     "verify:fixes": "node --experimental-strip-types scripts/verify-production-fixes.js",

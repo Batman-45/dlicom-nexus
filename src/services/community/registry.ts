@@ -25,11 +25,11 @@ export const normalizeXUsername = normalizeHandle;
 export const isValidXUsername = isValidHandle;
 
 /**
- * Authoritative, verified Dlicom community seed registry.
+ * Authoritative, verified Dlicom community authoritative registry.
  * Sourced directly from official dlicom.io leadership rosters, team directories,
  * and official Dlicom ecosystem properties.
  */
-export const OFFICIAL_SEED_REGISTRY: CommunityMember[] = [
+export const OFFICIAL_AUTHORITATIVE_REGISTRY: CommunityMember[] = [
   {
     dliId: 'DLI-CORE-001',
     xHandle: 'dlicomapp',
@@ -371,11 +371,14 @@ export const OFFICIAL_SEED_REGISTRY: CommunityMember[] = [
   },
 ];
 
+/** Backward-compatible export for authoritative registry */
+export const OFFICIAL_SEED_REGISTRY: CommunityMember[] = OFFICIAL_AUTHORITATIVE_REGISTRY;
+
 /**
- * Community Candidates discovered from public sources, kept in a separate pipeline.
- * NEVER enter the main Circle.
+ * Observed Community Candidates discovered from public sources, kept in a separate pipeline.
+ * Strictly non-Circle-eligible.
  */
-export const CANDIDATE_SEED_REGISTRY: CommunityMember[] = [
+export const OBSERVED_CANDIDATE_REGISTRY: CommunityMember[] = [
   {
     dliId: 'DLI-CAND-001',
     xHandle: '0xZeeve',
@@ -445,6 +448,9 @@ export const CANDIDATE_SEED_REGISTRY: CommunityMember[] = [
     bio: 'Community advocacy and regional support for Dlicom SocialFi on Base.',
   },
 ];
+
+/** Backward-compatible export for observed candidate registry */
+export const CANDIDATE_SEED_REGISTRY: CommunityMember[] = OBSERVED_CANDIDATE_REGISTRY;
 
 export const COMMUNITY_FRIEND_SEED_REGISTRY: CommunityMember[] = [];
 
@@ -620,11 +626,33 @@ export class PublicEvidenceRegistry {
       return;
     }
 
+    const safeFetch = async (provider: { name: string; primaryUrl: string; fetchRecords: () => Promise<any> }): Promise<any> => {
+      try {
+        return await provider.fetchRecords();
+      } catch (err: any) {
+        return {
+          members: [],
+          health: {
+            sourceType: 'OFFICIAL_WEBSITE',
+            url: provider.primaryUrl,
+            title: provider.name,
+            status: 'UNAVAILABLE',
+            freshness: 'DEGRADED',
+            lastChecked: new Date().toISOString(),
+            lastFailedFetch: new Date().toISOString(),
+            consecutiveFailures: 1,
+            recordsExtracted: 0,
+            errorMessage: err?.message || 'Network fetch failure',
+          },
+        };
+      }
+    };
+
     const [webRes, commRes, annRes, candRes] = await Promise.all([
-      this.officialWebsiteProvider.fetchRecords(),
-      this.officialCommunityPageProvider.fetchRecords(),
-      this.officialAnnouncementProvider.fetchRecords(),
-      this.publicEvidenceProvider.fetchRecords(),
+      safeFetch(this.officialWebsiteProvider),
+      safeFetch(this.officialCommunityPageProvider),
+      safeFetch(this.officialAnnouncementProvider),
+      safeFetch(this.publicEvidenceProvider),
     ]);
 
     const allVerifiedRaw = [
