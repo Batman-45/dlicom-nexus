@@ -7,7 +7,7 @@ import { fetchXPublicProfile } from '../api/_lib/xPublic.js';
 
 import { getOrFetchUserData, normalizeUsername, deduplicateConnections } from '../api/_lib/cache.js';
 import { getSupabaseStatus } from '../api/_lib/supabase.js';
-import communityHandler from '../api/community/members.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -101,53 +101,62 @@ async function handleConnections(req, res) {
   }
 }
 
-import auditHandler from '../api/community/audit.js';
-import whitepaperHandler from '../api/community/whitepaper.js';
-import pulseDashboardHandler from '../api/pulse/dashboard.js';
-import pulseProjectsHandler from '../api/pulse/projects.js';
-import pulseMembersHandler from '../api/pulse/members.js';
-import pulseOpportunitiesHandler from '../api/pulse/opportunities.js';
-import pulseMemberHandler from '../api/pulse/member.js';
-import pulseActivityHandler from '../api/pulse/activity.js';
-import pulseHealthHandler from '../api/pulse/health.js';
+// ── Mascot Public Profile Endpoint ───────────────────────────────────────────
+async function handleMascotProfile(req, res) {
+  const { username } = req.params;
+  const cleanUsername = normalizeUsername(username);
+
+  if (!cleanUsername || !/^[a-zA-Z0-9_]{1,25}$/.test(cleanUsername)) {
+    return res.status(400).json({ error: 'Please enter a valid X username (1-25 characters).' });
+  }
+
+  try {
+    const { data } = await getOrFetchUserData(cleanUsername);
+
+    const user = {
+      screen_name: data.profile?.username || cleanUsername,
+      name: data.profile?.displayName || cleanUsername,
+      description: data.profile?.bio || '',
+      profile_image_url_https: data.profile?.avatar || null,
+      followers_count: data.profile?.followersCount ?? 0,
+      friends_count: data.profile?.followingCount ?? 0,
+      verified: !!data.profile?.verified,
+    };
+
+    return res.json({
+      user,
+      profile: data.profile,
+      connections: data.connections || [],
+      sourcesUsed: data.sourcesUsed || [],
+      isMockData: false,
+      dataStatus: data.dataStatus || 'OK',
+      reason: data.reason || null,
+      fetchedAt: data.fetchedAt || new Date().toISOString(),
+    });
+  } catch (err) {
+    const status = err.status || 500;
+    const message = err.message || 'Unable to retrieve public X profile';
+    console.error(`[mascot-profile] Error for @${cleanUsername} [HTTP ${status}]:`, message);
+    return res.status(status).json({
+      error: message,
+      status,
+      reason: err.reason || message,
+    });
+  }
+}
 
 // Serve both standard Vercel serverless path and legacy proxy path
 app.get('/api/x/users/:username/connections', handleConnections);
 app.get('/api/proxy/x/users/:username/connections', handleConnections);
-app.get('/api/community/whitepaper', (req, res) => whitepaperHandler(req, res));
-app.get('/api/community/members', (req, res) => communityHandler(req, res));
-app.get('/api/community/candidates', (req, res) => {
-  req.query.view = 'candidates';
-  return communityHandler(req, res);
-});
-app.get('/api/community/audit', (req, res) => auditHandler(req, res));
+app.get('/api/mascot/profile/:username', handleMascotProfile);
 
-// Dlicom Pulse Endpoints
-app.get('/api/pulse/dashboard', (req, res) => pulseDashboardHandler(req, res));
-app.get('/api/pulse/projects', (req, res) => pulseProjectsHandler(req, res));
-app.get('/api/pulse/members', (req, res) => pulseMembersHandler(req, res));
-app.get('/api/pulse/members/:username', (req, res) => {
-  req.query.username = req.params.username;
-  return pulseMemberHandler(req, res);
-});
-app.get('/api/pulse/member', (req, res) => pulseMemberHandler(req, res));
-app.get('/api/pulse/opportunities', (req, res) => pulseOpportunitiesHandler(req, res));
-app.get('/api/pulse/activity', (req, res) => pulseActivityHandler(req, res));
-app.get('/api/pulse/health', (req, res) => pulseHealthHandler(req, res));
 
 app.listen(port, () => {
-  console.log(`Dlicom Pulse Local Dev Server running on http://localhost:${port}`);
+  console.log(`Dlicom Mascot Generator Server running on http://localhost:${port}`);
   console.log(`Endpoints:`);
   console.log(`  - GET /api/health`);
-  console.log(`  - GET /api/pulse/dashboard`);
-  console.log(`  - GET /api/pulse/projects`);
-  console.log(`  - GET /api/pulse/members`);
-  console.log(`  - GET /api/pulse/members/:username`);
-  console.log(`  - GET /api/pulse/opportunities`);
-  console.log(`  - GET /api/pulse/activity`);
-  console.log(`  - GET /api/pulse/health`);
-  console.log(`  - GET /api/community/members`);
-  console.log(`  - GET /api/community/candidates`);
-  console.log(`  - GET /api/community/audit`);
+  console.log(`  - GET /api/mascot/profile/:username`);
+  console.log(`  - GET /api/x/users/:username/connections`);
 });
+
 

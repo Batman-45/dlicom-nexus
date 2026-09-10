@@ -1,0 +1,379 @@
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes holographicShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes floatMascot {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes rotateAura {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mascot-avatar-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: visible;
+}
+
+.mascot-avatar-container:hover {
+  transform: translateY(-2px);
+}
+
+.mascot-glow-backdrop {
+  position: absolute;
+  inset: -15%;
+  border-radius: 50%;
+  filter: blur(20px);
+  opacity: 0.65;
+  animation: pulseGlow 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mascot-vector-mark {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.35s ease;
+}
+
+.mascot-avatar-container:hover .mascot-vector-mark {
+  transform: scale(1.05);
+}
+
+.mascot-holo-border {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+  z-index: 25;
+}
+
+.mascot-card-frame {
+  position: relative;
+  border-radius: 1.75rem;
+  background: radial-gradient(circle at 50% 0%, rgba(30, 20, 50, 0.5) 0%, rgba(10, 8, 22, 0.96) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+
+.mascot-card-frame:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.mascot-collectible-stage {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+  max-width: 600px;
+  aspect-ratio: 1 / 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .mascot-collectible-stage {
+    max-width: 380px;
+  }
+}
+
+.mascot-collectible-stage:hover {
+  transform: translateY(-4px);
+}
+
+/* ========================================================================= */
+/* MASCOT STUDIO INPUT & CTA STYLING (EXPLICIT DARK THEME ENFORCEMENT)       */
+/* ========================================================================= */
+
+.mascot-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: #0c081e !important;
+  background: #0c081e !important;
+  border: 1.5px solid rgba(168, 85, 247, 0.35) !important;
+  border-radius: 1rem !important;
+  padding: 0.35rem 0.45rem 0.35rem 1rem !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-sizing: border-box !important;
+}
+
+.mascot-input-wrapper:focus-within {
+  border-color: rgba(192, 132, 252, 0.85) !important;
+  box-shadow: 0 0 28px rgba(168, 85, 247, 0.35), 0 8px 32px rgba(0, 0, 0, 0.7) !important;
+}
+
+.mascot-input-field {
+  flex: 1 1 0% !important;
+  background-color: transparent !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border: none !important;
+  outline: none !important;
+  font-family: 'JetBrains Mono', monospace, monospace !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 0.5rem 0.5rem 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  line-height: 1.5 !important;
+}
+
+.mascot-input-field::placeholder {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1 !important;
+}
+
+.mascot-synthesize-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  padding: 0.7rem 1.5rem !important;
+  border-radius: 0.75rem !important;
+  background: linear-gradient(135deg, #9333ea 0%, #c026d3 50%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  letter-spacing: 0.025em !important;
+  border: none !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.45) !important;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+
+.mascot-synthesize-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #a855f7 0%, #d946ef 50%, #6366f1 100%) !important;
+  box-shadow: 0 6px 28px rgba(168, 85, 247, 0.65) !important;
+  transform: translateY(-1px) !important;
+}
+
+.mascot-synthesize-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+.mascot-synthesize-btn:disabled {
+  opacity: 0.65 !important;
+  cursor: not-allowed !important;
+}
+
+.mascot-error-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.75rem;
+  background-color: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  font-size: 0.8rem;
+  backdrop-filter: blur(8px);
+}
+
+/* ========================================================================= */
+/* MASCOT HERO & RESULT LAYOUT (VANILLA CSS FOR ULTRA-PREMIUM RESPONSIVENESS)*/
+/* ========================================================================= */
+
+.mascot-page-atmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.mascot-bg-glow-orb-1 {
+  position: absolute;
+  top: 15%;
+  left: 25%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 450px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.16) 0%, rgba(147, 51, 234, 0) 70%);
+  filter: blur(80px);
+}
+
+.mascot-bg-glow-orb-2 {
+  position: absolute;
+  top: 30%;
+  right: 20%;
+  transform: translate(30%, 0);
+  width: 550px;
+  height: 550px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.14) 0%, rgba(99, 102, 241, 0) 70%);
+  filter: blur(90px);
+}
+
+.mascot-hero-card {
+  position: relative;
+  border-radius: 1.75rem;
+  background: radial-gradient(ellipse at 50% 0%, rgba(30, 20, 56, 0.55) 0%, rgba(11, 8, 26, 0.95) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.24);
+  box-shadow: 0 28px 80px -16px rgba(0, 0, 0, 0.85), 0 0 50px rgba(168, 85, 247, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  padding: 2.75rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.75rem;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .mascot-hero-card {
+    padding: 1.75rem 1.25rem;
+    gap: 1.5rem;
+  }
+}
+
+.mascot-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 1rem;
+  border-radius: 9999px;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  color: #d8b4fe;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 12px rgba(168, 85, 247, 0.15);
+}
+
+.mascot-hero-title {
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.mascot-gradient-text {
+  background: linear-gradient(135deg, #c084fc 0%, #f472b6 50%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.mascot-hero-subtitle {
+  font-size: 0.95rem;
+  color: #cbd5e1;
+  line-height: 1.6;
+  max-width: 440px;
+  margin: 0.5rem auto 0;
+}
+
+.mascot-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.mascot-chip:hover {
+  background: rgba(168, 85, 247, 0.16);
+  border-color: rgba(168, 85, 247, 0.4);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.mascot-trust-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+  color: #94a3b8;
+}
+
+/* Centered collectible showcase layout in result state */
+.mascot-result-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+@media (min-width: 992px) {
+  .mascot-result-layout {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+  }
+}
+
+.mascot-gallery-card {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.mascot-gallery-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -12px rgba(168, 85, 247, 0.2);
+}

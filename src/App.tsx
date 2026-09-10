@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { PulseDashboardPage } from './views/PulseDashboardPage';
-import { PulseMembersPage } from './views/PulseMembersPage';
-import { PulseProjectsPage } from './views/PulseProjectsPage';
-import { PulseMemberProfilePage } from './views/PulseMemberProfilePage';
-import { RegistryPage } from './views/RegistryPage';
-import { PassportPage } from './views/PassportPage';
-import { MethodologyPage } from './views/MethodologyPage';
-import { AuditPage } from './views/AuditPage';
+import { MascotGeneratorPage } from './views/MascotGeneratorPage';
+import { MascotGalleryPage } from './views/MascotGalleryPage';
 
 const CirclePage = React.lazy(() =>
   import('./views/CirclePage').then((m) => ({ default: m.CirclePage }))
@@ -33,42 +27,7 @@ export default function App(): React.JSX.Element {
     }
   };
 
-  // Pulse V1 Routes
-  if (currentPath === '/members') {
-    return <PulseMembersPage onNavigate={navigate} />;
-  }
-
-  if (currentPath === '/projects') {
-    return <PulseProjectsPage onNavigate={navigate} />;
-  }
-
-  if (currentPath.startsWith('/member/')) {
-    const username = currentPath.replace('/member/', '').split('/')[0];
-    return <PulseMemberProfilePage username={username} onNavigate={navigate} />;
-  }
-
-  // Preserved Public Evidence & Registry Routes
-  if (currentPath === '/registry') {
-    return <RegistryPage onNavigate={navigate} initialTab="verified" />;
-  }
-
-  if (currentPath === '/registry/candidates') {
-    return <RegistryPage onNavigate={navigate} initialTab="candidates" />;
-  }
-
-  if (currentPath === '/registry/audit') {
-    return <AuditPage onNavigate={navigate} />;
-  }
-
-  if (currentPath === '/registry/methodology') {
-    return <MethodologyPage onNavigate={navigate} />;
-  }
-
-  if (currentPath.startsWith('/passport/')) {
-    const dliId = currentPath.replace('/passport/', '').split('/')[0];
-    return <PassportPage dliId={dliId} onNavigate={navigate} />;
-  }
-
+  // Preserved X Circle Route
   if (currentPath === '/circle') {
     return (
       <React.Suspense
@@ -83,7 +42,19 @@ export default function App(): React.JSX.Element {
     );
   }
 
-  // Default to Community Dashboard (/)
-  return <PulseDashboardPage onNavigate={navigate} />;
+  // 12 Families × 36 Variants Gallery Route: /mascots
+  if (currentPath === '/mascots') {
+    return <MascotGalleryPage onNavigate={navigate} />;
+  }
+
+  // Direct Mascot Profile Route: /mascot/:username
+  if (currentPath.startsWith('/mascot/')) {
+    const username = currentPath.replace('/mascot/', '').split('/')[0];
+    return <MascotGeneratorPage key={username} onNavigate={navigate} initialUsername={username} />;
+  }
+
+  // Default to Mascot Generator Landing Page (/)
+  return <MascotGeneratorPage onNavigate={navigate} />;
 }
+
 
