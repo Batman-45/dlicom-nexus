@@ -1,4 +1,4 @@
-import { Orbit, Compass, Users, Zap, SlidersHorizontal, Sparkles, ShieldCheck } from 'lucide-react';
+import { Orbit, Compass, Users, Zap, SlidersHorizontal, Sparkles, ShieldCheck, GitFork } from 'lucide-react';
 import { DlicomLogo } from '../DlicomLogo/DlicomLogo';
 import type { DlicomUser } from '../../types/circle';
 
@@ -19,6 +19,8 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
 }) => {
   const navItems = [
     { id: 'circle', label: 'My Circle', icon: Orbit },
+    { id: 'pipelines', label: 'Pipeline Studio', icon: GitFork },
+    { id: 'mascot', label: 'Mascot Studio', icon: Sparkles },
     { id: 'registry', label: 'Public Registry', icon: ShieldCheck, badge: '11' },
     { id: 'explore', label: 'Explore Constellations', icon: Compass },
     { id: 'guilds', label: 'Guilds & Communities', icon: Users },
@@ -49,7 +51,11 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
             <button
               key={item.id}
               onClick={() => {
-                if (item.id === 'registry' && onNavigate) {
+                if (item.id === 'pipelines' && onNavigate) {
+                  onNavigate('/pipelines');
+                } else if (item.id === 'mascot' && onNavigate) {
+                  onNavigate('/');
+                } else if (item.id === 'registry' && onNavigate) {
                   onNavigate('/registry');
                 } else {
                   onNavTabChange(item.id);

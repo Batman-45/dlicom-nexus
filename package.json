@@ -9,6 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "verify:mascot-generator": "node --experimental-strip-types scripts/verify-mascot-generator.js",
+    "verify:pipeline-engine": "npx tsx scripts/verify-pipeline-engine.js",
     "verify-rohit": "node --experimental-strip-types scripts/verify-real-rohit-flow.js",
     "verify:fixes": "node --experimental-strip-types scripts/verify-production-fixes.js",
     "verify:circle-flow": "node --experimental-strip-types scripts/verify-circle-data-flow.js",

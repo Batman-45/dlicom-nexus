@@ -1,6 +1,6 @@
 /**
  * Dlicom Nexus - Pipeline Store & State Engine
- * Manages active pipeline DAG graph mutations, selection, validation, and history.
+ * Manages active pipeline DAG graph mutations, selection, validation, local persistence, and undo/redo history.
  */
 
 import type { NexusEdge, NexusNode, PipelineManifest } from '../../types';
@@ -8,6 +8,8 @@ import { DagResolver, type GraphValidationResult } from '../engine/dagResolver';
 import { SAMPLE_PIPELINES } from '../data/templates';
 
 export type PipelineStoreListener = () => void;
+
+const STORAGE_KEY = 'dlicom_pipelines_v1';
 
 export class PipelineStore {
   private activePipeline: PipelineManifest;
@@ -20,11 +22,57 @@ export class PipelineStore {
   private historyIndex: number = -1;
 
   constructor() {
-    // Populate templates
-    SAMPLE_PIPELINES.forEach(p => this.pipelines.set(p.id, JSON.parse(JSON.stringify(p))));
-    this.activePipeline = JSON.parse(JSON.stringify(SAMPLE_PIPELINES[0]));
+    this.loadFromStorage();
+
+    // If active pipeline is not set, default to first available
+    const firstPipeline = this.pipelines.values().next().value || SAMPLE_PIPELINES[0];
+    this.activePipeline = JSON.parse(JSON.stringify(firstPipeline));
     this.validationResult = DagResolver.resolve(this.activePipeline.nodes, this.activePipeline.edges);
     this.pushHistory();
+  }
+
+  private loadFromStorage(): void {
+    let loadedFromStorage = false;
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const stored = window.localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            parsed.forEach((p: PipelineManifest) => {
+              if (p && p.id && Array.isArray(p.nodes) && Array.isArray(p.edges)) {
+                this.pipelines.set(p.id, p);
+              }
+            });
+            loadedFromStorage = this.pipelines.size > 0;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[pipelineStore] Failed to read from localStorage:', err);
+    }
+
+    // Always ensure canonical blueprints exist in the registry
+    SAMPLE_PIPELINES.forEach(p => {
+      if (!this.pipelines.has(p.id)) {
+        this.pipelines.set(p.id, JSON.parse(JSON.stringify(p)));
+      }
+    });
+
+    if (!loadedFromStorage) {
+      this.persist();
+    }
+  }
+
+  private persist(): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const payload = JSON.stringify(Array.from(this.pipelines.values()));
+        window.localStorage.setItem(STORAGE_KEY, payload);
+      }
+    } catch (err) {
+      console.warn('[pipelineStore] Failed to write to localStorage:', err);
+    }
   }
 
   public subscribe(listener: PipelineStoreListener): () => void {
@@ -36,6 +84,7 @@ export class PipelineStore {
 
   private notify(): void {
     this.validationResult = DagResolver.resolve(this.activePipeline.nodes, this.activePipeline.edges);
+    this.persist();
     for (const listener of this.listeners) {
       try {
         listener();
@@ -46,7 +95,6 @@ export class PipelineStore {
   }
 
   private pushHistory(): void {
-    // Keep max 30 states
     if (this.historyIndex < this.history.length - 1) {
       this.history = this.history.slice(0, this.historyIndex + 1);
     }
@@ -80,6 +128,10 @@ export class PipelineStore {
 
   public getAllPipelines(): PipelineManifest[] {
     return Array.from(this.pipelines.values());
+  }
+
+  public getPipelineById(id: string): PipelineManifest | undefined {
+    return this.pipelines.get(id);
   }
 
   public getSelectedNodeId(): string | null {
@@ -162,12 +214,12 @@ export class PipelineStore {
       }
       return n;
     });
+    this.persist();
     this.notify();
   }
 
   public removeNode(nodeId: string): void {
     this.activePipeline.nodes = this.activePipeline.nodes.filter(n => n.id !== nodeId);
-    // Remove associated edges
     this.activePipeline.edges = this.activePipeline.edges.filter(
       e => e.source !== nodeId && e.target !== nodeId
     );
@@ -181,7 +233,6 @@ export class PipelineStore {
   }
 
   public addEdge(edge: NexusEdge): void {
-    // Check if edge already exists
     const exists = this.activePipeline.edges.some(
       e => e.source === edge.source && e.target === edge.target
     );
@@ -234,6 +285,53 @@ export class PipelineStore {
     this.pipelines.set(id, newPipeline);
     this.switchPipeline(id);
     return newPipeline;
+  }
+
+  public exportPipelinesJson(): string {
+    return JSON.stringify(Array.from(this.pipelines.values()), null, 2);
+  }
+
+  public importPipelinesJson(jsonStr: string): { success: boolean; count: number; error?: string } {
+    try {
+      const parsed = JSON.parse(jsonStr);
+      const items: PipelineManifest[] = Array.isArray(parsed) ? parsed : [parsed];
+      let importedCount = 0;
+
+      for (const item of items) {
+        if (item && item.id && item.name && Array.isArray(item.nodes) && Array.isArray(item.edges)) {
+          this.pipelines.set(item.id, item);
+          importedCount++;
+        }
+      }
+
+      if (importedCount > 0) {
+        this.persist();
+        this.notify();
+        return { success: true, count: importedCount };
+      }
+      return { success: false, count: 0, error: 'No valid pipeline definitions found in JSON payload.' };
+    } catch (err: unknown) {
+      return {
+        success: false,
+        count: 0,
+        error: err instanceof Error ? err.message : 'Invalid JSON format'
+      };
+    }
+  }
+
+  public resetToDefaults(): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch {
+      // ignore
+    }
+    this.pipelines.clear();
+    SAMPLE_PIPELINES.forEach(p => this.pipelines.set(p.id, JSON.parse(JSON.stringify(p))));
+    this.activePipeline = JSON.parse(JSON.stringify(SAMPLE_PIPELINES[0]));
+    this.persist();
+    this.notify();
   }
 }
 

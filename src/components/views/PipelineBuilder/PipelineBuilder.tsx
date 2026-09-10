@@ -12,6 +12,7 @@ import {
   type Node,
   type NodeChange
 } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 import { 
   Undo2, 
   Redo2, 
@@ -24,9 +25,11 @@ import { NodePalette } from './NodePalette';
 import { NodeInspector } from './NodeInspector';
 import { LiveTestRunnerBar } from './LiveTestRunnerBar';
 import { globalPipelineStore } from '../../../core/store/pipelineStore';
+import { useNavigation } from '../../../context';
 import type { NexusEdge, NexusNode, PipelineManifest } from '../../../types';
 
 export const PipelineBuilder: React.FC = () => {
+  const { selectedPipelineId } = useNavigation();
   const [pipeline, setPipeline] = useState<PipelineManifest>(globalPipelineStore.getActivePipeline());
   const [nodes, setNodes] = useState<Node[]>(globalPipelineStore.getActivePipeline().nodes as unknown as Node[]);
   const [edges, setEdges] = useState<Edge[]>(globalPipelineStore.getActivePipeline().edges as unknown as Edge[]);
@@ -37,6 +40,12 @@ export const PipelineBuilder: React.FC = () => {
 
   // Custom Node registration
   const nodeTypes = useMemo(() => ({ nexusNode: NexusCustomNode }), []);
+
+  useEffect(() => {
+    if (selectedPipelineId && selectedPipelineId !== 'active') {
+      globalPipelineStore.switchPipeline(selectedPipelineId);
+    }
+  }, [selectedPipelineId]);
 
   useEffect(() => {
     const unsub = globalPipelineStore.subscribe(() => {

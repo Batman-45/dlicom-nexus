@@ -1,34 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { NavigationProvider, useNavigation } from './context';
 import { MascotGeneratorPage } from './views/MascotGeneratorPage';
 import { MascotGalleryPage } from './views/MascotGalleryPage';
+import { AppShell } from './components/layout/AppShell';
+import { PipelineLibrary } from './components/views/PipelineLibrary';
+import { PipelineBuilder } from './components/views/PipelineBuilder/PipelineBuilder';
+import { ConnectorCatalog } from './components/views/ConnectorCatalog';
+import { ExecutionCenter } from './components/views/ExecutionCenter';
+import { ExecutionDetail } from './components/views/ExecutionDetail';
+import { NexusHome } from './components/views/NexusHome';
 
 const CirclePage = React.lazy(() =>
   import('./views/CirclePage').then((m) => ({ default: m.CirclePage }))
 );
 
-export default function App(): React.JSX.Element {
-  const [currentPath, setCurrentPath] = useState<string>(() => {
-    return window.location.pathname || '/';
-  });
+const AppContent: React.FC = () => {
+  const { currentView, selectedExecutionId, targetHandle, navigateByUrl } = useNavigation();
 
-  useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname || '/');
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  const navigate = (to: string) => {
-    if (to !== window.location.pathname) {
-      window.history.pushState({}, '', to);
-      setCurrentPath(to);
-      window.scrollTo(0, 0);
-    }
-  };
-
-  // Preserved X Circle Route
-  if (currentPath === '/circle') {
+  // 1. Preserved X Circle Route: /circle and /circle/:handle
+  if (currentView === 'circle') {
     return (
       <React.Suspense
         fallback={
@@ -37,24 +27,44 @@ export default function App(): React.JSX.Element {
           </div>
         }
       >
-        <CirclePage onNavigate={navigate} />
+        <CirclePage onNavigate={navigateByUrl} initialHandle={targetHandle || undefined} />
       </React.Suspense>
     );
   }
 
-  // 12 Families × 36 Variants Gallery Route: /mascots
-  if (currentPath === '/mascots') {
-    return <MascotGalleryPage onNavigate={navigate} />;
+  // 2. 12 Families × 36 Variants Gallery Route: /mascots
+  if (currentView === 'mascot_gallery') {
+    return <MascotGalleryPage onNavigate={navigateByUrl} />;
   }
 
-  // Direct Mascot Profile Route: /mascot/:username
-  if (currentPath.startsWith('/mascot/')) {
-    const username = currentPath.replace('/mascot/', '').split('/')[0];
-    return <MascotGeneratorPage key={username} onNavigate={navigate} initialUsername={username} />;
+  // 3. Mascot Profile & Generator Landing Route: / and /mascot/:username
+  if (currentView === 'mascot_generator') {
+    return (
+      <MascotGeneratorPage
+        key={targetHandle || 'home'}
+        onNavigate={navigateByUrl}
+        initialUsername={targetHandle || undefined}
+      />
+    );
   }
 
-  // Default to Mascot Generator Landing Page (/)
-  return <MascotGeneratorPage onNavigate={navigate} />;
+  // 4. Workflow Orchestration Subsystems inside Unified AppShell
+  return (
+    <AppShell>
+      {currentView === 'builder' && <PipelineBuilder />}
+      {currentView === 'library' && <PipelineLibrary />}
+      {currentView === 'connectors' && <ConnectorCatalog />}
+      {currentView === 'executions' && <ExecutionCenter />}
+      {currentView === 'execution_detail' && <ExecutionDetail executionId={selectedExecutionId} />}
+      {currentView === 'home' && <NexusHome />}
+    </AppShell>
+  );
+};
+
+export default function App(): React.JSX.Element {
+  return (
+    <NavigationProvider>
+      <AppContent />
+    </NavigationProvider>
+  );
 }
-
-

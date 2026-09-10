@@ -1,6 +1,9 @@
 import { createContext } from 'react';
 
 export type AppView = 
+  | 'mascot_generator'
+  | 'mascot_gallery'
+  | 'circle'
   | 'home'
   | 'builder'
   | 'library'
@@ -11,8 +14,11 @@ export type AppView =
 export interface NavigationContextValue {
   currentView: AppView;
   selectedExecutionId: string | null;
+  selectedPipelineId: string | null;
+  targetHandle: string | null;
   sidebarExpanded: boolean;
-  navigateTo: (view: AppView, params?: { executionId?: string; pipelineId?: string }) => void;
+  navigateTo: (view: AppView, params?: { executionId?: string; pipelineId?: string; handle?: string }) => void;
+  navigateByUrl: (url: string) => void;
   toggleSidebar: () => void;
 }
 

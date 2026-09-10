@@ -98,6 +98,11 @@ export class ExecutionStore {
     this.notify();
   }
 
+  public recordRun(run: ExecutionRun): void {
+    this.runs.set(run.id, { ...run });
+    this.notify();
+  }
+
   public clearHistory(): void {
     this.runs.clear();
     this.activeRunId = null;

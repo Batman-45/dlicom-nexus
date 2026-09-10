@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Network, ExternalLink } from 'lucide-react';
+import { Sparkles, Network, ExternalLink, GitFork } from 'lucide-react';
 import { DlicomLogo } from '../DlicomLogo/DlicomLogo';
 
 interface MascotNavbarProps {
@@ -71,6 +71,19 @@ export const MascotNavbar: React.FC<MascotNavbarProps> = ({ onNavigate, currentP
           >
             <Network className="w-3.5 h-3.5" />
             <span>X Circle</span>
+          </button>
+
+          <button
+            id="nav-pipelines"
+            onClick={() => onNavigate('/pipelines')}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+              currentPath.startsWith('/pipeline') || currentPath === '/connectors' || currentPath === '/executions'
+                ? 'bg-cyan-600/20 text-cyan-300 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+            }`}
+          >
+            <GitFork className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Pipelines</span>
           </button>
 
           <a

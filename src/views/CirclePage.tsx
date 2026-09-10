@@ -20,9 +20,10 @@ type CirclePageState = 'onboarding' | 'loading' | 'error' | 'constellation';
 
 interface CirclePageProps {
   onNavigate?: (route: string) => void;
+  initialHandle?: string;
 }
 
-export const CirclePage: React.FC<CirclePageProps> = ({ onNavigate }) => {
+export const CirclePage: React.FC<CirclePageProps> = ({ onNavigate, initialHandle }) => {
   // Page Flow State - Initial visit starts clean on onboarding
   const [pageState, setPageState] = useState<CirclePageState>('onboarding');
   const [targetUsername, setTargetUsername] = useState<string>('');
@@ -166,6 +167,12 @@ export const CirclePage: React.FC<CirclePageProps> = ({ onNavigate }) => {
       setPageState('error');
     }
   }, []);
+
+  useEffect(() => {
+    if (initialHandle) {
+      handleBuildCircle(initialHandle);
+    }
+  }, [initialHandle, handleBuildCircle]);
 
   // Developer Prototype Demo Preset Loader (Alex Chen & 28 friends) - Dev only
   const handleLoadDemoPreset = useCallback(async () => {

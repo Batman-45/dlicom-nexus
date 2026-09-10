@@ -113,6 +113,7 @@ export const TopBar: React.FC = () => {
 
       <div className="topbar-right">
         <button 
+          id="topbar-new-pipeline"
           className="btn btn-secondary btn-sm"
           onClick={handleCreateNew}
           title="Create a new workflow pipeline"
@@ -122,6 +123,7 @@ export const TopBar: React.FC = () => {
         </button>
 
         <button 
+          id="topbar-execute-run"
           className="btn btn-primary btn-sm"
           onClick={handleRunActivePipeline}
           disabled={isRunning}
@@ -132,6 +134,7 @@ export const TopBar: React.FC = () => {
         </button>
 
         <button 
+          id="topbar-view-executions"
           className="btn btn-ghost btn-sm"
           onClick={() => navigateTo('executions')}
           title="View Executions Console"
