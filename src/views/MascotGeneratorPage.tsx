@@ -464,6 +464,26 @@ export const MascotGeneratorPage: React.FC<MascotGeneratorPageProps> = ({
                     {generatedMascot.mascotId}
                   </span>
                 </div>
+
+                {generatedMascot.signals.sourceType === 'USER_CONFIRMED_FALLBACK' ? (
+                  <div
+                    id="mascot-signal-provenance"
+                    className="flex items-center gap-1.5 font-mono text-xs text-amber-300 bg-amber-950/40 border border-amber-500/25 px-3 py-1.5 rounded-full shadow-sm"
+                    title="Synthesized deterministically from simulated fallback signals (zero invented data)"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="font-semibold">Simulated Fallback</span>
+                  </div>
+                ) : (
+                  <div
+                    id="mascot-signal-provenance"
+                    className="flex items-center gap-1.5 font-mono text-xs text-emerald-300 bg-emerald-950/40 border border-emerald-500/25 px-3 py-1.5 rounded-full shadow-sm"
+                    title="Synthesized from verified public X profile signals"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="font-semibold">Verified Public Signals</span>
+                  </div>
+                )}
               </div>
 
               {/* Variant Name & Handle */}

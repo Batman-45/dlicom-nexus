@@ -32,7 +32,12 @@ const COOLDOWN_DURATION_MS = 60000; // 60 seconds
  * @returns {string}
  */
 export function normalizeUsername(rawUsername) {
-  return (rawUsername || '').toLowerCase().replace(/^@+/, '').trim();
+  if (!rawUsername) return '';
+  let clean = String(rawUsername).trim();
+  clean = clean.replace(/^(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com)\//i, '');
+  clean = clean.split(/[?#]/)[0];
+  clean = clean.replace(/\/+$/, '');
+  return clean.toLowerCase().replace(/^@+/, '').trim();
 }
 
 /**

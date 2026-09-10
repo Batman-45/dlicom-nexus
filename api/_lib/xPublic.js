@@ -371,7 +371,11 @@ export async function fetchPublicWebSource(cleanUsername) {
  * }>}
  */
 export async function fetchXPublicProfile(rawUsername) {
-  const clean = (rawUsername || '').replace(/^@+/, '').trim();
+  let clean = (rawUsername || '').trim();
+  clean = clean.replace(/^(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com)\//i, '');
+  clean = clean.split(/[?#]/)[0];
+  clean = clean.replace(/\/+$/, '');
+  clean = clean.replace(/^@+/, '').trim();
   if (!clean || !/^[a-zA-Z0-9_]{1,25}$/.test(clean)) {
     const err = new Error('Invalid X username format. Must be 1-25 alphanumeric characters or underscores.');
     err.status = 400;

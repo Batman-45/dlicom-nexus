@@ -12,7 +12,7 @@
  */
 
 import { generateMascotVariant } from '../src/services/mascot/mascotEngine.ts';
-import { validateUsername, createFallbackSignals } from '../src/services/mascot/xProfileService.ts';
+import { validateUsername, createFallbackSignals, fetchPublicXSignals } from '../src/services/mascot/xProfileService.ts';
 
 
 let passed = 0;
@@ -49,6 +49,19 @@ assert(!v4.isValid, 'Rejects illegal characters');
 
 const v5 = validateUsername('a'.repeat(26));
 assert(!v5.isValid, 'Rejects usernames longer than 25 characters');
+
+// URL Normalization tests (Requirement 4)
+const vUrl1 = validateUsername('https://x.com/batman_1718R');
+assert(vUrl1.isValid && vUrl1.cleanUsername === 'batman_1718R', 'Correctly normalizes https://x.com/batman_1718R');
+
+const vUrl2 = validateUsername('https://twitter.com/batman_1718R?s=20');
+assert(vUrl2.isValid && vUrl2.cleanUsername === 'batman_1718R', 'Correctly normalizes twitter.com URL with query params');
+
+const vUrl3 = validateUsername('batman_1718R');
+assert(vUrl3.isValid && vUrl3.cleanUsername === 'batman_1718R', 'Correctly accepts plain handle batman_1718R');
+
+const vUrl4 = validateUsername('@batman_1718R');
+assert(vUrl4.isValid && vUrl4.cleanUsername === 'batman_1718R', 'Correctly accepts @batman_1718R');
 
 // 2. Deterministic Repeatability
 console.log('\n🎲 2. Deterministic Repeatability & Cryptographic Seeding:');
@@ -198,6 +211,44 @@ assert(
   run1.visual.characterImage && run1.visual.characterImage.startsWith('/mascots/'),
   'Generated mascot variants point to official full-character collectible images'
 );
+
+// 7. Live X Retrieval Failure -> Safe Fallback -> Deterministic Mascot Synthesis (Production Bug Regression)
+console.log('\n🔄 7. Live X Retrieval Failure → Safe Fallback → Deterministic Mascot Synthesis:');
+
+// Test @batman_1718R live failure / fallback flow
+const fallbackResult = await fetchPublicXSignals('batman_1718R');
+assert(fallbackResult.success === true, 'Retrieval for @batman_1718R succeeds (via live signals or safe fallback)');
+assert(fallbackResult.signals && fallbackResult.signals.username === 'batman_1718R', 'Signals contain normalized username batman_1718R');
+assert(
+  fallbackResult.signals.sourceType === 'LIVE_X_PUBLIC' || fallbackResult.signals.sourceType === 'USER_CONFIRMED_FALLBACK',
+  'Signal source type is transparently distinguished (LIVE_X_PUBLIC or USER_CONFIRMED_FALLBACK)'
+);
+
+// Synthesize mascot from retrieved/fallback signals
+const synthesizedMascot1 = generateMascotVariant(fallbackResult.signals);
+const synthesizedMascot2 = generateMascotVariant(fallbackResult.signals);
+assert(
+  synthesizedMascot1.mascotId.startsWith('DLI-MASCOT-'),
+  'Synthesizes valid mascot ID starting with DLI-MASCOT-'
+);
+assert(
+  synthesizedMascot1.mascotId === synthesizedMascot2.mascotId,
+  'Fallback mascot generation is 100% deterministic across repeated runs'
+);
+assert(
+  synthesizedMascot1.familyName && synthesizedMascot1.variantName,
+  'Fallback mascot has valid canonical family and variant names'
+);
+
+// Test genuine total failures (Requirement 8)
+const emptyFailure = await fetchPublicXSignals('');
+assert(!emptyFailure.success, 'Empty handle results in genuine total failure');
+
+const invalidFailure = await fetchPublicXSignals('illegal$$$');
+assert(!invalidFailure.success, 'Illegal characters result in genuine total failure');
+
+const notfoundFailure = await fetchPublicXSignals('notfound');
+assert(!notfoundFailure.success, 'Explicit notfound account results in genuine total failure');
 
 console.log('\n======================================================================');
 console.log(`VERIFICATION SUMMARY: ${passed}/${total} checks passed (${Math.round((passed / total) * 100)}%)`);
