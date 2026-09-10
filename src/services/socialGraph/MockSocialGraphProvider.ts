@@ -1,7 +1,7 @@
-import type { SocialConnection, SocialGraphProvider, SocialProfile, SocialGraphResult } from './types';
-import { SocialGraphError } from './types';
-import { CURRENT_USER as DEMO_CURRENT_USER, FRIENDS_DATA as DEMO_FRIENDS_DATA, NETWORK_STATS as DEMO_NETWORK_STATS } from '../../data/friends';
-import { seedFromString, createSeededRng, seededShuffle } from './deterministicSeed';
+import type { SocialConnection, SocialGraphProvider, SocialProfile, SocialGraphResult } from './types.ts';
+import { SocialGraphError } from './types.ts';
+import { CURRENT_USER as DEMO_CURRENT_USER, FRIENDS_DATA as DEMO_FRIENDS_DATA, NETWORK_STATS as DEMO_NETWORK_STATS } from '../../data/friends.ts';
+import { seedFromString, createSeededRng, seededShuffle } from './deterministicSeed.ts';
 
 const AVATAR_POOL = [
   'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&auto=format&fit=crop&q=80',
@@ -126,6 +126,14 @@ function usernameToDisplayName(username: string): string {
   return parts.map(capitalize).join(' ') || capitalize(username);
 }
 
+function cleanMockHandle(raw: string): string {
+  let clean = (raw || '').trim();
+  clean = clean.replace(/^(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com)\//i, '');
+  clean = clean.split(/[?#]/)[0];
+  clean = clean.replace(/\/+$/, '');
+  return clean.toLowerCase().replace(/^@+/, '').trim();
+}
+
 export class MockSocialGraphProvider implements SocialGraphProvider {
   readonly mode = 'mock' as const;
 
@@ -134,11 +142,18 @@ export class MockSocialGraphProvider implements SocialGraphProvider {
   }
 
   async getProfile(rawUsername: string): Promise<SocialProfile> {
-    await this.delay(400);
-    const username = rawUsername.replace(/^@+/, '').trim().toLowerCase();
+    await this.delay(200);
+    const username = cleanMockHandle(rawUsername);
 
     if (!username) {
       throw new SocialGraphError('Please enter a valid X username.', 'INVALID_HANDLE');
+    }
+
+    if (!/^[a-zA-Z0-9_]{1,25}$/.test(username)) {
+      throw new SocialGraphError(
+        'Usernames can only contain letters, numbers, and underscores (1-25 characters).',
+        'INVALID_HANDLE'
+      );
     }
 
     if (username === 'notfound' || username.startsWith('notfound_')) {
@@ -192,8 +207,8 @@ export class MockSocialGraphProvider implements SocialGraphProvider {
   }
 
   async getConnections(rawUsername: string): Promise<SocialConnection[]> {
-    await this.delay(600);
-    const username = rawUsername.replace(/^@+/, '').trim().toLowerCase();
+    await this.delay(200);
+    const username = cleanMockHandle(rawUsername);
 
     if (username === 'alexchen' || username === 'alex.dlicom') {
       return DEMO_FRIENDS_DATA.map((f) => ({

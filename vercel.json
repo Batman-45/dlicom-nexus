@@ -2,6 +2,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/api/x/users/:username/connections", "destination": "/api/x/users/[username]/connections.js" },
+    { "source": "/api/mascot/profile/:username", "destination": "/api/mascot/profile/[username].js" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]

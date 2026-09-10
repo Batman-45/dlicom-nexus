@@ -21,7 +21,11 @@ export const CircleOnboarding: React.FC<CircleOnboardingProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanHandle = handle.replace(/^@+/, '').trim();
+    let cleanHandle = (handle || '').trim();
+    cleanHandle = cleanHandle.replace(/^(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com)\//i, '');
+    cleanHandle = cleanHandle.split(/[?#]/)[0];
+    cleanHandle = cleanHandle.replace(/\/+$/, '');
+    cleanHandle = cleanHandle.replace(/^@+/, '').trim();
 
     if (!cleanHandle) {
       setValidationError('Please enter your X username.');
@@ -38,9 +42,14 @@ export const CircleOnboarding: React.FC<CircleOnboardingProps> = ({
   };
 
   const handleQuickSelect = (username: string) => {
-    setHandle(username);
+    let clean = (username || '').trim();
+    clean = clean.replace(/^(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com)\//i, '');
+    clean = clean.split(/[?#]/)[0];
+    clean = clean.replace(/\/+$/, '');
+    clean = clean.replace(/^@+/, '').trim();
+    setHandle(clean);
     setValidationError(null);
-    onSubmit(username);
+    onSubmit(clean);
   };
 
   return (

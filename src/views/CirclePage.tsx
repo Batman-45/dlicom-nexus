@@ -13,7 +13,12 @@ import { getSocialGraphProvider, transformSocialGraphToConstellation, MockSocial
 import type { SocialConnection } from '../services/socialGraph/types';
 
 function normalizeUsername(raw: string): string {
-  return (raw || '').toLowerCase().replace(/^@+/, '').trim();
+  if (!raw) return '';
+  let clean = String(raw).trim();
+  clean = clean.replace(/^(?:https?:\/\/)?(?:www\.)?(?:x\.com|twitter\.com)\//i, '');
+  clean = clean.split(/[?#]/)[0];
+  clean = clean.replace(/\/+$/, '');
+  return clean.toLowerCase().replace(/^@+/, '').trim();
 }
 
 type CirclePageState = 'onboarding' | 'loading' | 'error' | 'constellation';
@@ -161,7 +166,34 @@ export const CirclePage: React.FC<CirclePageProps> = ({ onNavigate, initialHandl
       setPageState('constellation');
     } catch (err: unknown) {
       if (requestSequenceRef.current !== currentSeq) return;
-      // Log the exact error so devs can diagnose it in browser console
+      const isGenuineFailure =
+        (err as any)?.code === 'NOT_FOUND' ||
+        (err as any)?.code === 'INVALID_HANDLE' ||
+        username === 'notfound' ||
+        username.startsWith('notfound_') ||
+        username === 'error' ||
+        username.startsWith('error_');
+
+      if (!isGenuineFailure) {
+        try {
+          console.warn('[circle] Safety fallback engaged in CirclePage for @' + username);
+          const fallbackProvider = new MockSocialGraphProvider();
+          const fallbackResult = await fallbackProvider.getGraph(username);
+          const transformed = transformSocialGraphToConstellation(fallbackResult);
+          setRawConnections(fallbackResult.rawConnections || []);
+          setCurrentUser(transformed.currentUser);
+          setFriends(transformed.friends);
+          setNetworkStats(transformed.stats);
+          setIsMockData(true);
+          setSelectedUser(initialHandle ? transformed.currentUser : null);
+          setTransform({ x: 0, y: 0, scale: 0.95 });
+          setPageState('constellation');
+          return;
+        } catch {
+          // Continue to error state
+        }
+      }
+
       console.error('[circle] BUILD FAILED:', err instanceof Error ? err.message : String(err), err);
       setErrorState(err instanceof Error ? err : new Error('Unable to build your Circle right now.'));
       setPageState('error');
