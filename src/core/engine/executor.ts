@@ -15,6 +15,7 @@ import { DagResolver } from './dagResolver';
 import { globalNexusEvents } from './events';
 import { globalExecutionStore } from '../store/executionStore';
 import { globalPipelineStore } from '../store/pipelineStore';
+import { evaluateSafeExpression, interpolateTemplateString } from './safeEvaluator';
 
 export interface ExecutorOptions {
   triggerPayload?: unknown;
@@ -226,6 +227,9 @@ export class PipelineExecutor {
     if (run.status === 'running') {
       run.status = 'success';
       this.addLog(run, 'info', `Pipeline executed successfully in ${totalDuration}ms`);
+    } else if (run.status === 'error') {
+      this.addLog(run, 'error', `Pipeline execution terminated with failure in ${totalDuration}ms`);
+      globalNexusEvents.emit('execution:error', { runId: run.id, error: 'Pipeline execution failed' });
     }
 
     globalExecutionStore.recordRun(run);
@@ -238,11 +242,30 @@ export class PipelineExecutor {
     const type = node.data.type;
     this.addLog(run, 'info', `Processing node: [${node.data.label}] category=${category} type=${type}`, node.id, node.data.label);
 
+    // Simulated failure injection for failure-path testing
+    if (node.data.config?.simulateFailure === true) {
+      throw new Error(`Simulated node failure: [${node.data.label}] encountered an unrecoverable RPC exception.`);
+    }
+
     const inputObj = (typeof input === 'object' && input !== null) ? (input as Record<string, unknown>) : { value: input };
 
     switch (category) {
       case 'trigger': {
         this.addLog(run, 'debug', `Trigger [${node.data.label}] activated with inbound payload`, node.id);
+        if (type === 'dlicom-social-signal') {
+          return {
+            ...inputObj,
+            source: 'dlicom-social-signal',
+            username: node.data.config?.username || inputObj.username || 'vitalikbuterin',
+            displayName: node.data.config?.displayName || inputObj.displayName || 'Vitalik Buterin',
+            archetype: node.data.config?.archetype || inputObj.archetype || 'RESEARCH_QUANT',
+            familyId: node.data.config?.familyId || inputObj.familyId || 'RESEARCH_FELLOWSHIP',
+            variantId: node.data.config?.variantId || inputObj.variantId || 'research_quant_v1',
+            interactionScore: Number(node.data.config?.interactionScore || inputObj.interactionScore || 92),
+            traits: node.data.config?.traits || inputObj.traits || { outfit: 'Scholar Robes', equipment: 'Proof Terminal' },
+            timestamp: new Date().toISOString()
+          };
+        }
         return {
           ...inputObj,
           source: type,
@@ -256,8 +279,45 @@ export class PipelineExecutor {
 
       case 'transform': {
         this.addLog(run, 'debug', `Transform [${node.data.label}] executing client-side rule`, node.id);
+
+        // Custom deterministic expression evaluation
+        if (node.data.config?.expression && typeof node.data.config.expression === 'string') {
+          const expr = (node.data.config.expression as string).trim();
+          let evaluated: unknown;
+          if (expr.startsWith('{') && expr.endsWith('}')) {
+            try {
+              evaluated = JSON.parse(expr);
+            } catch {
+              evaluated = {
+                transformed: true,
+                expression: expr,
+                data: inputObj
+              };
+            }
+          } else {
+            evaluated = evaluateSafeExpression(expr, inputObj);
+          }
+          return {
+            ...inputObj,
+            transformed: true,
+            expression: expr,
+            result: evaluated,
+            evaluatedAt: new Date().toISOString()
+          };
+        }
+
         // Client-side schema transform / filtering
         if (type === 'data-filter') {
+          if (node.data.config?.filterExpression && typeof node.data.config.filterExpression === 'string') {
+            const passed = Boolean(evaluateSafeExpression(node.data.config.filterExpression, inputObj));
+            return {
+              ...inputObj,
+              passed,
+              filterCriterion: node.data.config.filterExpression,
+              timestamp: new Date().toISOString()
+            };
+          }
+
           const innerPayload = (typeof inputObj.payload === 'object' && inputObj.payload !== null)
             ? (inputObj.payload as Record<string, unknown>)
             : inputObj;
@@ -300,11 +360,16 @@ export class PipelineExecutor {
 
       case 'sink': {
         this.addLog(run, 'info', `Sink [${node.data.label}] dispatching message packet`, node.id);
-        // Realistic telemetry packet dispatch
+        const rawUrl = (node.data.config?.url as string) || (node.data.config?.channelWebhook as string) || '';
+        const resolvedUrl = rawUrl ? interpolateTemplateString(rawUrl, inputObj) : undefined;
+        const rawChannel = (node.data.config?.channel as string) || '';
+        const resolvedChannel = rawChannel ? interpolateTemplateString(rawChannel, inputObj) : undefined;
+
         return {
           delivered: true,
           protocol: type,
-          channel: node.data.config?.channel || node.data.config?.channelWebhook || 'dlicom-dispatch',
+          channel: resolvedChannel || resolvedUrl || 'dlicom-dispatch',
+          url: resolvedUrl,
           statusCode: 200,
           deliveredAt: new Date().toISOString(),
           receiptId: `rcpt_${Math.random().toString(36).substring(2, 10)}`
@@ -314,10 +379,19 @@ export class PipelineExecutor {
       case 'connector':
       case 'logic':
       default: {
+        let resolvedConfig = node.data.config;
+        if (node.data.config?.url && typeof node.data.config.url === 'string') {
+          resolvedConfig = {
+            ...node.data.config,
+            resolvedUrl: interpolateTemplateString(node.data.config.url, inputObj)
+          };
+        }
+
         return {
           nodeId: node.id,
           executedType: type,
           status: 'ok',
+          config: resolvedConfig,
           data: input,
           outputTimestamp: new Date().toISOString()
         };

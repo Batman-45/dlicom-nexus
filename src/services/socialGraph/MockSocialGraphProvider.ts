@@ -312,6 +312,9 @@ export class MockSocialGraphProvider implements SocialGraphProvider {
     return {
       profile,
       connections,
+      circleFriends: connections,
+      rawConnections: connections,
+      rawConnectionsCount: connections.length,
       isMockData: true,
       fetchedAt: new Date().toISOString(),
     };

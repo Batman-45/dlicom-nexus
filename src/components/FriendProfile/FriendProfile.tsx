@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { DlicomUser } from '../../types/circle';
+import { generateMascotVariant } from '../../services/mascot/mascotEngine';
+import { globalPipelineStore } from '../../core/store/pipelineStore';
+import type { NexusNode } from '../../types/pipeline';
 import {
   X,
   Sparkles,
@@ -35,6 +38,22 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
   const [sparkCount, setSparkCount] = useState<number>(0);
   const [hasSparked, setHasSparked] = useState<boolean>(false);
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
+
+  const mascot = useMemo(() => {
+    if (!user) return null;
+    try {
+      return generateMascotVariant({
+        username: user.username,
+        displayName: user.displayName,
+        bio: user.bio,
+        sourceType: 'CACHED_X_PUBLIC',
+        detectedKeywords: user.role ? [user.role] : [],
+        inferredFocus: user.role || 'general'
+      });
+    } catch {
+      return null;
+    }
+  }, [user]);
 
   if (!user) return null;
 
@@ -227,6 +246,112 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
               Joined {user.joinedDate}
             </span>
           </div>
+
+          {/* Canonical Mascot Identity Card */}
+          {mascot && (
+            <div
+              data-testid="mascot-identity-card"
+              className="p-3.5 rounded-2xl bg-gradient-to-br from-purple-950/40 via-slate-900/80 to-cyan-950/40 border border-purple-500/40 mb-3.5 space-y-2.5 shadow-lg"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                  Deterministic Mascot Identity
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-200 border border-cyan-500/30 font-bold">
+                  {mascot.archetypeLabel}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-xl bg-slate-950 border border-cyan-500/40 overflow-hidden shrink-0 flex items-center justify-center">
+                  <img
+                    src={mascot.visual?.characterImage || `/mascots/variants/${mascot.variantId}.png`}
+                    alt={mascot.title || mascot.variantName}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/mascots/base/dlicom_base.png';
+                    }}
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs font-bold text-white truncate">{mascot.title || mascot.variantName}</h4>
+                  <p className="text-[11px] text-purple-300 truncate font-medium">{mascot.familyName}</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {mascot.visual?.outfit && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 truncate max-w-[140px]">
+                        {mascot.visual.outfit}
+                      </span>
+                    )}
+                    {mascot.visual?.equipment && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 truncate max-w-[140px]">
+                        {mascot.visual.equipment}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => onNavigate?.('/mascots')}
+                  className="py-1.5 px-2 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-purple-200 font-semibold text-[11px] transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  title="Inspect in Mascot Studio"
+                >
+                  <Palette className="w-3 h-3" />
+                  <span>Inspect Studio</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const signalNode: NexusNode = {
+                      id: `node_signal_${user.username}_${Date.now().toString(36)}`,
+                      type: 'nexusNode',
+                      position: { x: 300, y: 150 },
+                      data: {
+                        label: `@${user.username} Mascot Signal`,
+                        category: 'trigger',
+                        type: 'dlicom-social-signal',
+                        description: `Authentic identity signal for @${user.username}`,
+                        inputs: [],
+                        outputs: [
+                          { id: 'username', name: 'Username', type: 'string' },
+                          { id: 'archetype', name: 'Archetype', type: 'string' },
+                          { id: 'familyId', name: 'Family ID', type: 'string' },
+                          { id: 'variantId', name: 'Variant ID', type: 'string' },
+                          { id: 'interactionScore', name: 'Score', type: 'number' },
+                          { id: 'traits', name: 'Traits', type: 'object' }
+                        ],
+                        config: {
+                          username: user.username,
+                          displayName: user.displayName,
+                          archetype: mascot.archetype,
+                          familyId: mascot.familyId,
+                          variantId: mascot.variantId,
+                          interactionScore: user.interactionScore ?? user.connectionStrength ?? 85,
+                          traits: {
+                            outfit: mascot.visual?.outfit,
+                            equipment: mascot.visual?.equipment,
+                            accessory: mascot.visual?.accessory
+                          }
+                        },
+                        status: 'idle'
+                      }
+                    };
+                    globalPipelineStore.addNode(signalNode);
+                    onNavigate?.('/pipelines');
+                  }}
+                  className="py-1.5 px-2 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-500/40 text-cyan-200 font-semibold text-[11px] transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  title="Send Signal to Pipeline"
+                >
+                  <Zap className="w-3 h-3" />
+                  <span>Pipeline Trigger</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Verified Dlicom Community Match Explanation Panel */}
           {!isCenter && (user.dliId || user.evidenceSummary) && (

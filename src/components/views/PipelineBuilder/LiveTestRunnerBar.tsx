@@ -45,16 +45,21 @@ export const LiveTestRunnerBar: React.FC<LiveTestRunnerBarProps> = ({ pipeline, 
       parsedPayload = { error: 'Invalid JSON payload parsed' };
     }
 
-    const executor = new PipelineExecutor(pipeline, {
-      triggerPayload: parsedPayload,
-      stepDelayMs: 200,
-      environment: pipeline.environment,
-      initiatedBy: 'Builder Test Bar'
-    });
+    try {
+      const executor = new PipelineExecutor(pipeline, {
+        triggerPayload: parsedPayload,
+        stepDelayMs: 200,
+        environment: pipeline.environment,
+        initiatedBy: 'Builder Test Bar'
+      });
 
-    const run = await executor.execute();
-    setLastRun(run);
-    setIsRunning(false);
+      const run = await executor.execute();
+      setLastRun(run);
+    } catch (err) {
+      console.error('[LiveTestRunnerBar] Executor error:', err);
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -108,10 +113,11 @@ export const LiveTestRunnerBar: React.FC<LiveTestRunnerBarProps> = ({ pipeline, 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {lastRun && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
-              <span className={`badge badge-${lastRun.status}`}>
+              <span data-testid="live-runner-status" className={`badge badge-${lastRun.status}`}>
                 {lastRun.status} ({lastRun.metrics.totalDurationMs}ms)
               </span>
               <button 
+                data-testid="btn-inspect-trace"
                 className="btn btn-ghost btn-sm"
                 onClick={() => navigateTo('execution_detail', { executionId: lastRun.id })}
                 title="Inspect in Execution Detail"
@@ -123,6 +129,7 @@ export const LiveTestRunnerBar: React.FC<LiveTestRunnerBarProps> = ({ pipeline, 
           )}
 
           <button
+            data-testid="btn-run-pipeline"
             className="btn btn-primary btn-sm"
             onClick={handleExecute}
             disabled={isRunning || !validation.isValid}

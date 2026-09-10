@@ -155,8 +155,8 @@ export const CirclePage: React.FC<CirclePageProps> = ({ onNavigate, initialHandl
       setPotentialCandidates(transformed.potentialCommunityMembers || []);
       setTotalAnalyzed(transformed.totalCandidatesAnalyzed || 0);
 
-      // Reset view to center and open constellation
-      setSelectedUser(null);
+      // Reset view to center and open constellation (or selected user if handle provided)
+      setSelectedUser(initialHandle ? transformed.currentUser : null);
       setTransform({ x: 0, y: 0, scale: 0.95 });
       setPageState('constellation');
     } catch (err: unknown) {

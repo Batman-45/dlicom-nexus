@@ -238,5 +238,37 @@ export const BUILTIN_CONNECTORS: ConnectorDefinition[] = [
         ]
       }
     ]
+  },
+  {
+    id: 'dlicom-social-signal',
+    name: 'Dlicom Social Signal Trigger',
+    version: '1.2.0',
+    category: 'dlicom_core',
+    description: 'Inbound deterministic identity & social signals from the Dlicom Circle graph and Mascot system.',
+    icon: 'Radio',
+    author: 'Dlicom Core Team',
+    isDlicomNative: true,
+    tags: ['dlicom', 'identity', 'mascot', 'circle', 'social', 'trigger'],
+    triggers: [
+      {
+        id: 'mascot-identity-event',
+        name: 'Mascot Identity Signal',
+        description: 'Triggers when a community peer identity or social interaction is emitted.',
+        mode: 'push',
+        outputs: [
+          { id: 'username', name: 'Username', type: 'string' },
+          { id: 'archetype', name: 'Archetype', type: 'string' },
+          { id: 'familyId', name: 'Family ID', type: 'string' },
+          { id: 'variantId', name: 'Variant ID', type: 'string' },
+          { id: 'interactionScore', name: 'Interaction Score', type: 'number' },
+          { id: 'traits', name: 'Traits', type: 'object' }
+        ],
+        configFields: [
+          { key: 'minInteractionScore', label: 'Minimum Interaction Score', type: 'number', defaultValue: 50 },
+          { key: 'targetArchetype', label: 'Target Archetype Filter (optional)', type: 'text' }
+        ]
+      }
+    ],
+    actions: []
   }
 ];

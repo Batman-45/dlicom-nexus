@@ -126,6 +126,14 @@ export class PipelineStore {
     return this.activePipeline;
   }
 
+  public getNodes(): NexusNode[] {
+    return this.activePipeline.nodes;
+  }
+
+  public getEdges(): NexusEdge[] {
+    return this.activePipeline.edges;
+  }
+
   public getAllPipelines(): PipelineManifest[] {
     return Array.from(this.pipelines.values());
   }

@@ -11,7 +11,10 @@ import {
   Layers, 
   Plus, 
   CheckCircle,
-  X
+  X,
+  Activity,
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { globalConnectorRegistry } from '../../core/connectors/registry';
 import { globalPipelineStore } from '../../core/store/pipelineStore';
@@ -24,6 +27,28 @@ export const ConnectorCatalog: React.FC = () => {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [selectedConnector, setSelectedConnector] = useState<ConnectorDefinition | null>(null);
+  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle');
+  const [testMessage, setTestMessage] = useState<string | null>(null);
+  const [simulateFailure, setSimulateFailure] = useState<boolean>(false);
+
+  const handleOpenConnector = (connector: ConnectorDefinition) => {
+    setSelectedConnector(connector);
+    setTestStatus('idle');
+    setTestMessage(null);
+  };
+
+  const handleTestConnection = async () => {
+    setTestStatus('testing');
+    setTestMessage('Initiating TLS handshake with simulated connector proxy...');
+    await new Promise(r => setTimeout(r, 200));
+    if (simulateFailure) {
+      setTestStatus('failed');
+      setTestMessage('Handshake failed: Simulated endpoint timeout (504 Gateway Timeout) on proxy socket.');
+    } else {
+      setTestStatus('success');
+      setTestMessage('Connection Verified · Latency: 34ms · Protocol: HTTP/2 TLS 1.3 · Status: ACTIVE');
+    }
+  };
 
   const filtered = connectors.filter(c => {
     const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -155,7 +180,7 @@ export const ConnectorCatalog: React.FC = () => {
               cursor: 'pointer',
               borderColor: connector.isDlicomNative ? 'var(--border-medium)' : 'var(--border-subtle)'
             }}
-            onClick={() => setSelectedConnector(connector)}
+            onClick={() => handleOpenConnector(connector)}
           >
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
@@ -288,6 +313,83 @@ export const ConnectorCatalog: React.FC = () => {
                 <CheckCircle size={14} color="var(--status-emerald)" />
                 <span>{selectedConnector.auth?.type === 'dlicom_vault' ? 'Integrated with Dlicom Secure Vault' : 'Standard Token / API Key Auth'}</span>
               </div>
+            </div>
+
+            {/* Simulated Connection Testing & Diagnostics */}
+            <div
+              data-testid="connector-test-section"
+              style={{
+                padding: '12px',
+                backgroundColor: 'var(--bg-surface-2)',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-subtle)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Activity size={13} color="var(--status-cyan)" />
+                  Connection Diagnostics & Health
+                </span>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    data-testid="chk-simulate-failure"
+                    checked={simulateFailure}
+                    onChange={(e) => setSimulateFailure(e.target.checked)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  Simulate Failure
+                </label>
+              </div>
+
+              {testMessage && (
+                <div
+                  data-testid="connector-test-status"
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '11px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backgroundColor: testStatus === 'success' ? 'rgba(16, 185, 129, 0.12)' :
+                                     testStatus === 'failed' ? 'rgba(244, 63, 94, 0.12)' : 'rgba(56, 189, 248, 0.12)',
+                    border: `1px solid ${testStatus === 'success' ? 'rgba(16, 185, 129, 0.3)' :
+                                         testStatus === 'failed' ? 'rgba(244, 63, 94, 0.3)' : 'rgba(56, 189, 248, 0.3)'}`,
+                    color: testStatus === 'success' ? 'var(--status-emerald)' :
+                           testStatus === 'failed' ? '#f43f5e' : 'var(--status-cyan)'
+                  }}
+                >
+                  {testStatus === 'testing' && <Loader2 size={13} className="animate-spin" />}
+                  {testStatus === 'success' && <CheckCircle size={13} />}
+                  {testStatus === 'failed' && <AlertCircle size={13} />}
+                  <span>{testMessage}</span>
+                </div>
+              )}
+
+              <button
+                type="button"
+                data-testid="btn-test-connection"
+                className="btn btn-secondary btn-sm"
+                disabled={testStatus === 'testing'}
+                onClick={handleTestConnection}
+                style={{ alignSelf: 'flex-start' }}
+              >
+                {testStatus === 'testing' ? (
+                  <>
+                    <Loader2 size={13} className="animate-spin" />
+                    <span>Testing Handshake...</span>
+                  </>
+                ) : (
+                  <>
+                    <Activity size={13} />
+                    <span>Test Connection</span>
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Capabilities (Actions & Triggers) */}

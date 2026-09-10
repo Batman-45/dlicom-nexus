@@ -8,13 +8,45 @@ import { globalNexusEvents } from '../engine/events';
 
 export type ExecutionStoreListener = () => void;
 
+const EXECUTION_STORAGE_KEY = 'dlicom_execution_runs';
+
 export class ExecutionStore {
   private runs: Map<string, ExecutionRun> = new Map();
   private activeRunId: string | null = null;
   private listeners: Set<ExecutionStoreListener> = new Set();
 
   constructor() {
+    this.loadFromStorage();
     this.initEventListeners();
+  }
+
+  private loadFromStorage(): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const stored = window.localStorage.getItem(EXECUTION_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((r: ExecutionRun) => {
+              if (r && r.id) this.runs.set(r.id, r);
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[executionStore] Failed to load from localStorage:', err);
+    }
+  }
+
+  private saveToStorage(): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const arr = Array.from(this.runs.values()).slice(0, 50);
+        window.localStorage.setItem(EXECUTION_STORAGE_KEY, JSON.stringify(arr));
+      }
+    } catch {
+      // Storage unavailable or quota exceeded
+    }
   }
 
   private initEventListeners(): void {
@@ -70,6 +102,7 @@ export class ExecutionStore {
   }
 
   private notify(): void {
+    this.saveToStorage();
     for (const listener of this.listeners) {
       try {
         listener();
@@ -106,6 +139,11 @@ export class ExecutionStore {
   public clearHistory(): void {
     this.runs.clear();
     this.activeRunId = null;
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(EXECUTION_STORAGE_KEY);
+      }
+    } catch {}
     this.notify();
   }
 }

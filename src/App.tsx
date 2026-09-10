@@ -9,6 +9,7 @@ import { ConnectorCatalog } from './components/views/ConnectorCatalog';
 import { ExecutionCenter } from './components/views/ExecutionCenter';
 import { ExecutionDetail } from './components/views/ExecutionDetail';
 import { NexusHome } from './components/views/NexusHome';
+import { CyberErrorBoundary } from './components/common/CyberErrorBoundary';
 
 const CirclePage = React.lazy(() =>
   import('./views/CirclePage').then((m) => ({ default: m.CirclePage }))
@@ -51,12 +52,14 @@ const AppContent: React.FC = () => {
   // 4. Workflow Orchestration Subsystems inside Unified AppShell
   return (
     <AppShell>
-      {currentView === 'builder' && <PipelineBuilder />}
-      {currentView === 'library' && <PipelineLibrary />}
-      {currentView === 'connectors' && <ConnectorCatalog />}
-      {currentView === 'executions' && <ExecutionCenter />}
-      {currentView === 'execution_detail' && <ExecutionDetail executionId={selectedExecutionId} />}
-      {currentView === 'home' && <NexusHome />}
+      <CyberErrorBoundary fallbackTitle="Orchestration View Error">
+        {currentView === 'builder' && <PipelineBuilder />}
+        {currentView === 'library' && <PipelineLibrary />}
+        {currentView === 'connectors' && <ConnectorCatalog />}
+        {currentView === 'executions' && <ExecutionCenter />}
+        {currentView === 'execution_detail' && <ExecutionDetail executionId={selectedExecutionId} />}
+        {currentView === 'home' && <NexusHome />}
+      </CyberErrorBoundary>
     </AppShell>
   );
 };

@@ -163,6 +163,8 @@ export const ExecutionCenter: React.FC = () => {
               {filteredRuns.map((run) => (
                 <tr 
                   key={run.id}
+                  data-testid="execution-row"
+                  className="execution-row"
                   style={{
                     borderBottom: '1px solid var(--border-subtle)',
                     cursor: 'pointer',

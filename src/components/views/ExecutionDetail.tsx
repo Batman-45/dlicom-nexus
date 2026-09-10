@@ -74,7 +74,7 @@ export const ExecutionDetail: React.FC<ExecutionDetailProps> = ({ executionId })
   };
 
   return (
-    <div style={{ padding: '24px', overflowY: 'auto', height: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div data-testid="execution-detail-view" style={{ padding: '24px', overflowY: 'auto', height: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
       {/* Header & Breadcrumb */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
