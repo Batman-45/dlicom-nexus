@@ -250,6 +250,9 @@ export const MascotGalleryPage: React.FC<MascotGalleryPageProps> = ({ onNavigate
                         src={variant.characterImage}
                         alt={`${family.familyName} - ${variant.variantName}`}
                         loading="lazy"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/mascots/base/dlicom_base.png';
+                        }}
                         className="w-full h-full object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.85)] group-hover:scale-105 transition-transform duration-500"
                       />
                       {/* Variant Index Badge */}

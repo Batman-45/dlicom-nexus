@@ -268,6 +268,7 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
                   <img
                     src={mascot.visual?.characterImage || `/mascots/variants/${mascot.variantId}.png`}
                     alt={mascot.title || mascot.variantName}
+                    loading="lazy"
                     className="w-full h-full object-contain"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/mascots/base/dlicom_base.png';

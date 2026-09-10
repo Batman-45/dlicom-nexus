@@ -12,6 +12,7 @@
     "verify:pipeline-engine": "npx tsx scripts/verify-pipeline-engine.js",
     "verify:phase3-engine": "npx tsx scripts/verify-phase3-engine.js",
     "verify:phase3-e2e": "node scripts/verify-phase3-e2e.js",
+    "verify:all": "node scripts/verify-all.js",
     "verify-rohit": "node --experimental-strip-types scripts/verify-real-rohit-flow.js",
     "verify:fixes": "node --experimental-strip-types scripts/verify-production-fixes.js",
     "verify:circle-flow": "node --experimental-strip-types scripts/verify-circle-data-flow.js",

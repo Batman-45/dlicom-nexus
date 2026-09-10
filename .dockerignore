@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+.git
+.github
+.planning
+*.log
+*.png
+.env.local
+.env.*.local

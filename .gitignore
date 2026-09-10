@@ -35,3 +35,22 @@ server/.env.*
 
 .vercel
 .env*
+
+# Planning & Scratch
+.planning/
+*.png
+
+# Phase 1 Intermediate Mascot Artifacts
+public/mascots/sources/
+public/mascots/dlicom_base.png
+public/mascots/base/dlicom_base.jpg
+
+# Exploratory Scratch Scripts (Permanent suites remain in scripts/verify-*)
+scripts/capture-*.js
+scripts/generate-*.js
+scripts/test-*.js
+scripts/run-final-36-mascot-audit.js
+scripts/setup-mascot-library-assets.js
+scripts/verify-visual-diversity-metrics.js
+scripts/verify-mascot-product-experience.js
+scripts/verify-mascot-uniqueness-browser.js
