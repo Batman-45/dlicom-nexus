@@ -2,70 +2,66 @@
 
 ## 1. System Overview
 
-**Dlicom Nexus** is an orchestration and Web3 intelligence platform uniting deterministic identity, decentralized community graphs, and visual node-based workflow automation.
+**Dlicom Nexus** is a Dlicom identity and mascot experience where a user's X identity and public signals deterministically generate an Official Dlicom Hero.
 
-The platform is structured into four decoupled, synergistic subsystems within a Unified Shell:
+The dApp provides an authentic, deterministic Web3 identity layer anchored by the canonical Dlicom 3D collectible mascot:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                        Dlicom Nexus Unified Shell                      │
-├───────────────┬────────────────────┬──────────────────┬────────────────┤
-│ Mascot Studio │ Circle Constell.   │ Pipeline Studio  │ Execution Ctr. │
-│ (12 Families) │ (Personal Circles) │ (@xyflow/react)  │ & Detail Trace │
-└───────┬───────┴─────────┬──────────┴────────┬─────────┴────────┬───────┘
-        │                 │                   │                  │
-        ▼                 ▼                   ▼                  ▼
-┌───────────────┐ ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
-│ Deterministic │ │ Graph Resolver │ │ DAG Resolution │ │ Execution Store│
-│ FNV-1a Engine │ │ & Isolation    │ │ & Safe Parser  │ │ & LocalStorage │
-└───────────────┘ └────────────────┘ └────────────────┘ └────────────────┘
+│                      Dlicom Nexus Superhero System                     │
+├───────────────────────────────────┬────────────────────────────────────┤
+│           Mascot Studio           │           Mascot Gallery           │
+│    (/ and /mascot/:username)      │              (/mascots)            │
+└─────────────────┬─────────────────┴──────────────────┬─────────────────┘
+                  │                                    │
+                  ▼                                    ▼
+┌───────────────────────────────────┐ ┌──────────────────────────────────┐
+│ Deterministic Identity Engine     │ │ Official Dlicom Hero Catalog     │
+│ 32-bit FNV-1a Hashing & Salting   │ │ 12 Families × 36 Hero Variants   │
+└─────────────────┬─────────────────┘ └────────────────┬─────────────────┘
+                  │                                    │
+                  ▼                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                    Canonical 3D Collectible Assets                     │
+│               36 Variants · 7 Legacy Aliases · Base Mascot             │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Core Subsystems
+## 2. Core Architecture & Subsystems
 
-### 2.1 Mascot Identity Engine (`/` and `/mascots`)
-- **Deterministic Synthesis**: Uses a 32-bit FNV-1a hashing algorithm to deterministically map public X signals (or user-confirmed fallback focus) into reproducible identity attributes:
-  - 12 authentic Web3/protocol families
-  - 36 unique visual variants
-  - Traits, equipment, temperament, and color palettes
-- **Zero Fabrication**: Profiles without public verifiable signals gracefully fall back to transparently marked `USER_CONFIRMED_FALLBACK` derivations.
-- **Anti-Infringement**: Hardened against Marvel/superhero trademarks; all assets and archetypes are original Web3 and cyberpunk creations.
+### 2.1 Mascot Studio (`/` and `/mascot/:username`)
+- **Public Signal Retrieval**: Reads public, verified X profile metadata (handle, display name, bio, follower count, joining date) without requiring private API tokens or third-party write credentials.
+- **Transparent Fallback**: When public X APIs are rate-limited or unavailable, transparently activates `USER_CONFIRMED_FALLBACK` provenance, ensuring zero data fabrication.
+- **Deterministic Identity Synthesis**:
+  - Uses 32-bit FNV-1a hashing (`hashString`) and bitwise salt distribution (`pickDeterministic`).
+  - Computes an immutable `computeDeterministicSeed(username)` for each handle.
+  - Outputs a stable `DLI-MASCOT-XXXXXX` identifier.
+  - Generates full visual traits (outfit, equipment, accessory, aura, expression, silhouette).
+- **Official Dlicom Hero System**:
+  - Maps `${familyId}:${variantId}` directly to one of 36 original Superhero Titles (e.g. *Captain DLI*, *Web DLI*, *Titan DLI*, *Tech DLI*, *Cosmic DLI*, *Flame DLI*, *Speed DLI*, *Mystic DLI*, *Shadow DLI*, *Armor DLI*, *Stealth DLI*).
+  - Classifies into 5 Hero Pillars (`FOUNDATION_DEFENSE`, `ARCHITECT_NETWORK`, `KNOWLEDGE_SYNTHESIS`, `CREATIVE_EXPEDITION`, `DEFI_GOVERNANCE`).
+  - Guarantees 100% original identity with absolute zero third-party IP infringement.
 
-### 2.2 Circle Constellation (`/circle` and `/circle/:handle`)
-- **Radial Constellation Layout**: Edge-to-edge canvas displaying personal friend circles orbiting a central user.
-- **Personal Friend Isolation Invariant**: Enforces that only observed public interactions appear within a personal circle.
-- **Mascot Identity Card**: When inspecting a peer profile (`/circle/:handle`), a deterministic Mascot Identity Card is rendered displaying traits, collectible character art, and an action to emit signals into the pipeline engine.
-
-### 2.3 Pipeline Studio & Canvas (`/pipelines` and `/pipeline/:id`)
-- **Graph Framework**: Built on `@xyflow/react` with a custom cosmic dark theme, high-contrast connection handles, and custom nodes.
-- **Connector Registry**: Built-in triggers (Smart Contract Listener, DEX Liquidity Sweep, Social Signal Trigger, Webhook) and actions (Discord Dispatch, Slack Dispatch, State Sync, HTTP Request).
-- **DAG Resolver & Cycle Detection**:
-  - Validates directed acyclic graph topology before execution.
-  - Detects direct (`A -> B -> A`) and indirect (`A -> B -> C -> B`) cycles.
-  - Groups nodes into sequential and parallel execution tiers using topological sorting.
-
-### 2.4 Execution Engine & Runtime Telemetry (`/executions` and `/execution/:id`)
-- **Safe Sandboxed Expression Evaluator**:
-  - Custom recursive-descent AST parser and tokenizer.
-  - Evaluates arithmetic (`+`, `-`, `*`, `/`), logical (`&&`, `||`, `!`), equality, comparisons, and ternaries.
-  - **Zero `eval()` or `new Function()`** to protect client security.
-- **Parameterized HTTP URL Templates**: Supports mustache-style variable substitutions (e.g. `https://api.example.com/alerts/{{payload.event}}`).
-- **Telemetry Event Bus**: Emits real-time lifecycle events (`execution:start`, `execution:step_start`, `execution:log`, `execution:finish`, `execution:error`).
-- **Guaranteed Runner Reset**: Implemented with robust `try/finally` blocks ensuring the test runner bar never remains locked in a running state.
+### 2.2 Mascot Gallery (`/mascots`)
+- **Complete Visual Catalog**: Displays all 36 collectible hero variants grouped across the 12 protocol families.
+- **Search & Filtering**: Real-time filtering by Superhero Title, family, archetype, role keywords, and visual attributes.
+- **Direct Synthesis Navigation**: Inspecting any collectible card seamlessly loads the variant or transitions to Mascot Studio.
 
 ---
 
-## 3. Storage & State Architecture
+## 3. Navigation & Route Architecture
 
 ```
-State Layer (Client-Side & Simulation)
-├── pipelineStore  -> LocalStorage (dlicom_pipelines_v1)
-├── executionStore -> LocalStorage (dlicom_execution_runs)
-└── navigationContext -> History API + localStorage
+User-Facing Routes
+├── /                       -> Mascot Studio (Home synthesis view)
+├── /mascot/:username       -> Mascot Studio (Pre-loaded with specific X handle)
+└── /mascots                -> Mascot Gallery (36 Hero Variants catalog)
 ```
 
-1. **Local-First Manifests**: Pipeline graphs and execution records persist across page reloads in `localStorage`.
-2. **Canonical Templates Protection**: Three canonical starter templates (`Smart Contract Event → Discord Alert`, `DEX Liquidity Sweep → Slack Notification`, `Cross-Chain State Sync`) are guaranteed immutable blueprints.
-3. **Simulation Boundary**: External side effects, RPC queries, and webhook dispatches run in simulated mode with realistic latency and diagnostics, requiring zero live third-party write credentials.
+- **Graceful Fallback**: Obsolete URLs (such as `/circle`, `/pipelines`, or deep links) cleanly route to the primary studio without broken pages or exceptions. If an obsolete handle route like `/circle/:handle` is visited, the navigation engine extracts the handle and opens Mascot Studio for that identity.
+- **Navigation Structure**:
+  - `Home`: Returns to the top-level synthesis hub (`/`).
+  - `Mascot Studio`: Directs to the synthesis studio (`/`).
+  - `Mascot Gallery`: Directs to the 36-variant hero catalog (`/mascots`).

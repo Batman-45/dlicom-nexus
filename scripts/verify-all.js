@@ -87,22 +87,13 @@ async function main() {
     // 2. Phase 1 Mascot UI Audit
     results.push(runStep('Phase 1: Mascot Generator UI & Theme Contrast Audit', 'node', ['scripts/verify-mascot-ui.js']));
 
-    // 3. Phase 2 Pipeline Engine
-    results.push(runStep('Phase 2: Pipeline DAG Engine & Canonical Blueprints', 'npm', ['run', 'verify:pipeline-engine']));
+    // 3. Official Superhero Mascot Visual QA Suite
+    results.push(runStep('Superhero Profiles Visual QA & Navigation Suite', 'node', ['scripts/qa-superhero-profiles.js']));
 
-    // 4. Phase 2 Pipeline Studio Browser Suite
-    results.push(runStep('Phase 2: Pipeline Studio & Unified Navigation Browser Suite', 'node', ['scripts/verify-pipeline-studio-browser.js']));
-
-    // 5. Phase 3 Engine Suite
-    results.push(runStep('Phase 3: Engine Parameterization, Safe AST Parser & Failure Paths', 'npm', ['run', 'verify:phase3-engine']));
-
-    // 6. Phase 3 Cross-Platform E2E
-    results.push(runStep('Phase 3: Cross-Subsystem End-to-End 12-Route Suite', 'node', ['scripts/verify-phase3-e2e.js']));
-
-    // 7. Strict TypeScript Compilation Check
+    // 4. Strict TypeScript Compilation Check
     results.push(runStep('TypeScript: Strict Type Check (tsc --noEmit)', 'npx', ['tsc', '--noEmit']));
 
-    // 8. Production Vite Bundle Build
+    // 5. Production Vite Bundle Build
     results.push(runStep('Production: Vite Packaging & Optimization (npm run build)', 'npm', ['run', 'build']));
 
   } finally {

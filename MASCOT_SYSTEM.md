@@ -42,7 +42,7 @@ Every variant in the system is rooted in the official base character ([`dlicom_b
 
 ---
 
-## 3. Deterministic Identity Pipeline
+## 3. Deterministic Identity Engine
 
 The mascot generation engine guarantees 100% deterministic repeatability using 32-bit FNV-1a cryptographic hashing:
 

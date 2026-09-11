@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Network, ExternalLink, GitFork } from 'lucide-react';
+import { Home, Sparkles, ExternalLink } from 'lucide-react';
 import { DlicomLogo } from '../DlicomLogo/DlicomLogo';
 
 interface MascotNavbarProps {
@@ -8,6 +8,9 @@ interface MascotNavbarProps {
 }
 
 export const MascotNavbar: React.FC<MascotNavbarProps> = ({ onNavigate, currentPath = '/' }) => {
+  const isGallery = currentPath === '/mascots';
+  const isStudio = currentPath === '/' || (currentPath.startsWith('/mascot') && !isGallery);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#07050f]/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -22,12 +25,15 @@ export const MascotNavbar: React.FC<MascotNavbarProps> = ({ onNavigate, currentP
           <div>
             <div className="flex items-center gap-2">
               <span className="text-base font-black text-white tracking-tight">DLICOM</span>
+              <span className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 tracking-tight">
+                NEXUS
+              </span>
               <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                MASCOT
+                HERO MASCOT
               </span>
             </div>
             <p className="text-[10px] text-slate-400 font-mono hidden sm:block">
-              Identity Synthesis Engine
+              Official Superhero Mascot System
             </p>
           </div>
         </div>
@@ -35,55 +41,42 @@ export const MascotNavbar: React.FC<MascotNavbarProps> = ({ onNavigate, currentP
         {/* Navigation Tabs */}
         <nav className="flex items-center gap-2">
           <button
+            id="nav-home"
+            onClick={() => onNavigate('/')}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+              currentPath === '/'
+                ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-[0_0_12px_rgba(168,85,247,0.2)]'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+            }`}
+          >
+            <Home className="w-3.5 h-3.5" />
+            <span>Home</span>
+          </button>
+
+          <button
             id="nav-mascot-generator"
             onClick={() => onNavigate('/')}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-              currentPath === '/' || (currentPath.startsWith('/mascot') && currentPath !== '/mascots')
+              isStudio
                 ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-[0_0_12px_rgba(168,85,247,0.2)]'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Mascot Generator</span>
+            <span>Mascot Studio</span>
           </button>
 
           <button
             id="nav-mascot-gallery"
             onClick={() => onNavigate('/mascots')}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-              currentPath === '/mascots'
+              isGallery
                 ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-[0_0_12px_rgba(168,85,247,0.2)]'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span>Gallery</span>
-          </button>
-
-          <button
-            id="nav-x-circle"
-            onClick={() => onNavigate('/circle')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-              currentPath === '/circle'
-                ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-[0_0_12px_rgba(168,85,247,0.2)]'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-            }`}
-          >
-            <Network className="w-3.5 h-3.5" />
-            <span>X Circle</span>
-          </button>
-
-          <button
-            id="nav-pipelines"
-            onClick={() => onNavigate('/pipelines')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-              currentPath.startsWith('/pipeline') || currentPath === '/connectors' || currentPath === '/executions'
-                ? 'bg-cyan-600/20 text-cyan-300 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-            }`}
-          >
-            <GitFork className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Pipelines</span>
+            <span>Mascot Gallery</span>
           </button>
 
           <a

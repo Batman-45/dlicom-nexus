@@ -157,34 +157,41 @@ async function main() {
       }
     }
 
-    // Also test FriendProfile
-    console.log('\n📍 Testing FriendProfile on /circle ...');
+    // Test Route Fallback & Navigation Integrity
+    console.log('\n📍 Testing Fallback from obsolete /circle/vitalikbuterin route ...');
     await send('Page.navigate', { url: 'http://localhost:5173/circle/vitalikbuterin' });
     await new Promise((r) => setTimeout(r, 2000));
 
-    const friendCheck = await send('Runtime.evaluate', {
+    const fallbackCheck = await send('Runtime.evaluate', {
       expression: `
         (() => {
-          const card = document.querySelector('[data-testid="mascot-identity-card"]');
-          if (!card) return null;
-          const img = card.querySelector('img');
+          const hasCircleNav = !!document.querySelector('#nav-x-circle');
+          const hasPipelineNav = !!document.querySelector('#nav-pipelines');
+          const hasHomeNav = !!document.querySelector('#nav-home');
+          const hasStudioNav = !!document.querySelector('#nav-mascot-generator');
+          const hasGalleryNav = !!document.querySelector('#nav-mascot-gallery');
+          const hasVariant = !!document.querySelector('#mascot-variant-name');
           return {
-            cardText: card.innerText,
-            imgLoaded: img ? img.complete && img.naturalWidth > 0 : false,
-            imgSrc: img ? img.src : null
+            hasCircleNav,
+            hasPipelineNav,
+            hasHomeNav,
+            hasStudioNav,
+            hasGalleryNav,
+            hasVariant
           };
         })()
       `,
       returnByValue: true
     });
 
-    const friendVal = friendCheck?.result?.result?.value || friendCheck?.result?.value;
-    if (friendVal) {
-      console.log('  ✅ FriendProfile Mascot Card verified:');
-      console.log(`     ${friendVal.cardText.split('\n').slice(0, 4).join(' | ')}`);
-      const friendScreenshot = await send('Page.captureScreenshot', { format: 'png' });
-      fs.writeFileSync(path.join(artifactDir, 'qa_friendprofile_hero.png'), Buffer.from(friendScreenshot.result.data, 'base64'));
-      console.log('  📸 Screenshot saved: qa_friendprofile_hero.png');
+    const fbVal = fallbackCheck?.result?.result?.value || fallbackCheck?.result?.value;
+    if (fbVal) {
+      console.log('  ✅ Fallback from obsolete /circle route cleanly rendered Mascot Studio:');
+      console.log(`     Has Home: ${fbVal.hasHomeNav}, Has Studio: ${fbVal.hasStudioNav}, Has Gallery: ${fbVal.hasGalleryNav}`);
+      console.log(`     Circle Nav Removed: ${!fbVal.hasCircleNav}, Pipeline Nav Removed: ${!fbVal.hasPipelineNav}`);
+      if (fbVal.hasCircleNav || fbVal.hasPipelineNav) {
+        throw new Error('Obsolete navigation items still detected in DOM!');
+      }
     }
 
     console.log('\n======================================================================');
