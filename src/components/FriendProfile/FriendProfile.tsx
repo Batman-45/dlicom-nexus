@@ -256,10 +256,10 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                  Deterministic Mascot Identity
+                  Official Dlicom Hero • Deterministic Mascot Identity
                 </span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-200 border border-cyan-500/30 font-bold">
-                  {mascot.archetypeLabel}
+                  {mascot.heroPillar ? mascot.heroPillar.replace('DLICOM_HERO_', '') : mascot.archetypeLabel}
                 </span>
               </div>
 
@@ -267,7 +267,7 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
                 <div className="w-14 h-14 rounded-xl bg-slate-950 border border-cyan-500/40 overflow-hidden shrink-0 flex items-center justify-center">
                   <img
                     src={mascot.visual?.characterImage || `/mascots/variants/${mascot.variantId}.png`}
-                    alt={mascot.title || mascot.variantName}
+                    alt={mascot.heroTitle || mascot.title || mascot.variantName}
                     loading="lazy"
                     className="w-full h-full object-contain"
                     onError={(e) => {
@@ -276,8 +276,12 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-xs font-bold text-white truncate">{mascot.title || mascot.variantName}</h4>
-                  <p className="text-[11px] text-purple-300 truncate font-medium">{mascot.familyName}</p>
+                  <h4 className="text-xs font-bold text-white truncate">
+                    {mascot.heroTitle || mascot.title || mascot.variantName}
+                  </h4>
+                  <p className="text-[11px] text-purple-300 truncate font-medium">
+                    Hero Variant: {mascot.variantName}
+                  </p>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {mascot.visual?.outfit && (
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 truncate max-w-[140px]">

@@ -446,6 +446,12 @@ export const MascotGeneratorPage: React.FC<MascotGeneratorPageProps> = ({
             >
               {/* Archetype & Mascot ID Pill Row */}
               <div className="flex items-center justify-center gap-3 flex-wrap">
+                {/* Dlicom Superhero Badge */}
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/40 text-xs font-mono font-bold text-white shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                  <span className="tracking-wider uppercase">Dlicom Hero</span>
+                </div>
+
                 <span
                   id="mascot-archetype-label"
                   className="tracking-wider uppercase font-mono text-xs font-extrabold px-3 py-1.5 rounded-full border shadow-sm"
@@ -486,31 +492,67 @@ export const MascotGeneratorPage: React.FC<MascotGeneratorPageProps> = ({
                 )}
               </div>
 
-              {/* Variant Name & Handle */}
-              <div className="space-y-1">
+              {/* Dlicom Hero Title & Variant */}
+              <div className="space-y-2">
+                <div className="text-xs font-mono uppercase tracking-widest text-purple-400 font-bold">
+                  Official Dlicom Hero
+                </div>
                 <h2
-                  id="mascot-variant-name"
-                  className="text-3xl sm:text-4xl font-black text-white tracking-tight"
+                  id="mascot-hero-title"
+                  className="text-4xl sm:text-5xl font-black text-white tracking-tight"
                 >
-                  {generatedMascot.variantName}
+                  {generatedMascot.heroTitle}
                 </h2>
-                <div className="flex items-center justify-center gap-2">
-                  <span id="mascot-handle" className="text-base font-mono font-semibold text-purple-300">
+                <div className="flex items-center justify-center gap-2 flex-wrap text-sm">
+                  <span className="text-slate-400 font-medium">Hero Variant:</span>
+                  <span id="mascot-variant-name" className="text-white font-bold">
+                    {generatedMascot.variantName}
+                  </span>
+                  <span className="text-slate-600">•</span>
+                  <span id="mascot-handle" className="font-mono font-semibold text-purple-300">
                     @{generatedMascot.username}
                   </span>
-                  <span className="text-xs text-slate-500">•</span>
-                  <span
-                    id="mascot-family-name"
-                    className="text-sm font-mono text-slate-400 font-medium"
-                  >
+                  <span className="text-slate-600">•</span>
+                  <span id="mascot-family-name" className="font-mono text-slate-400 font-medium">
                     {generatedMascot.familyName}
                   </span>
                 </div>
+                {generatedMascot.heroConcept && (
+                  <p className="text-xs text-slate-400 max-w-lg mx-auto italic">
+                    {generatedMascot.heroConcept}
+                  </p>
+                )}
               </div>
 
               {/* Family-Variant hook for regression audit tests */}
               <div id="mascot-family-variant" className="hidden">
                 {generatedMascot.familyName} • {generatedMascot.variantName}
+              </div>
+
+              {/* Visual Traits */}
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 max-w-xl mx-auto space-y-2 text-left">
+                <div className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center justify-between">
+                  <span>Visual Traits</span>
+                  <span className="text-[10px] text-purple-400 font-normal">Authentic Dlicom Specs</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                  <div className="p-2 rounded-xl bg-black/40 border border-white/5 space-y-0.5">
+                    <span className="text-slate-500 text-[10px] block">HERO ATTIRE</span>
+                    <span className="text-slate-200 text-[11px] font-medium leading-snug">{generatedMascot.visual.outfit}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-black/40 border border-white/5 space-y-0.5">
+                    <span className="text-slate-500 text-[10px] block">HERO EQUIPMENT</span>
+                    <span className="text-slate-200 text-[11px] font-medium leading-snug">{generatedMascot.visual.equipment}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-black/40 border border-white/5 space-y-0.5">
+                    <span className="text-slate-500 text-[10px] block">ACCESSORY & HUD</span>
+                    <span className="text-slate-200 text-[11px] font-medium leading-snug">{generatedMascot.visual.accessory}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-black/40 border border-white/5 space-y-0.5">
+                    <span className="text-slate-500 text-[10px] block">SIGNATURE POSE</span>
+                    <span className="text-slate-200 text-[11px] font-medium leading-snug">{generatedMascot.visual.pose}</span>
+                  </div>
+                </div>
               </div>
 
               {/* Personalized Motto */}

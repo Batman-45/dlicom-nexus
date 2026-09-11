@@ -65,6 +65,7 @@ export const MascotGalleryPage: React.FC<MascotGalleryPageProps> = ({ onNavigate
         const matchingVariants = family.variants.filter((v) => {
           return (
             v.variantName.toLowerCase().includes(query) ||
+            (v.heroTitle && v.heroTitle.toLowerCase().includes(query)) ||
             v.variantBadge.toLowerCase().includes(query) ||
             family.familyName.toLowerCase().includes(query) ||
             family.archetype.toLowerCase().includes(query)
@@ -273,6 +274,11 @@ export const MascotGalleryPage: React.FC<MascotGalleryPageProps> = ({ onNavigate
                             {family.archetype.replace('_', ' ')}
                           </span>
                         </div>
+                        {variant.heroTitle && (
+                          <div className="text-xs font-mono font-bold text-purple-300 uppercase tracking-wide">
+                            {variant.heroTitle}
+                          </div>
+                        )}
                         <h3 className="text-base sm:text-lg font-black text-white tracking-tight group-hover:text-purple-300 transition-colors">
                           {variant.variantName}
                         </h3>

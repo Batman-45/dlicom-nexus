@@ -11,6 +11,7 @@
 import type {
   MascotArchetype,
   MascotFamilyId,
+  DlicomHeroPillar,
   MascotFamilyDefinition,
   MascotVariant,
   PublicXSignals,
@@ -710,6 +711,239 @@ export function deriveArchetypeFromSignals(
 }
 
 /**
+ * Original Dlicom Superhero Catalog
+ * Maps each of the 12 families and 36 deterministic variants to their authentic,
+ * original Dlicom Superhero identity while fully preserving character base integrity.
+ */
+export const DLICOM_HERO_CATALOG: Record<
+  string,
+  {
+    heroTitle: string;
+    heroPillar: DlicomHeroPillar;
+    heroConcept: string;
+  }
+> = {
+  // 1. AEGIS_DEFENSE -> DLICOM_HERO_CORE
+  'AEGIS_DEFENSE:BARRIER_SENTINEL': {
+    heroTitle: 'Captain DLI',
+    heroPillar: 'DLICOM_HERO_CORE',
+    heroConcept: 'Original Dlicom guardian hero with energy shield, royal blue cape, and diamond emblem',
+  },
+  'AEGIS_DEFENSE:CYBER_BULWARK': {
+    heroTitle: 'Armor DLI',
+    heroPillar: 'DLICOM_HERO_CORE',
+    heroConcept: 'Original Dlicom fortified kinetic defense hero with protocol barrier baton',
+  },
+  'AEGIS_DEFENSE:VIGIL_GUARDIAN': {
+    heroTitle: 'Stealth DLI',
+    heroPillar: 'DLICOM_HERO_CORE',
+    heroConcept: 'Original Dlicom tactical perimeter hero with diamondweave stealth cape',
+  },
+
+  // 2. PROTOCOL_CORE -> DLICOM_HERO_CORE
+  'PROTOCOL_CORE:CORE_ENGINEER': {
+    heroTitle: 'Tech DLI',
+    heroPillar: 'DLICOM_HERO_CORE',
+    heroConcept: 'Original Dlicom bytecode builder hero with compiler slates and diamond core',
+  },
+  'PROTOCOL_CORE:ALCHEMIST_SYNTH': {
+    heroTitle: 'Alchemist DLI',
+    heroPillar: 'DLICOM_HERO_CORE',
+    heroConcept: 'Original Dlicom state-transition hero with nanotech coder mantle',
+  },
+  'PROTOCOL_CORE:BYTECODE_ARCHON': {
+    heroTitle: 'Archon DLI',
+    heroPillar: 'DLICOM_HERO_CORE',
+    heroConcept: 'Original Dlicom EVM conduit hero with low-latency gauntlets',
+  },
+
+  // 3. SYSTEM_FOUNDRY -> DLICOM_HERO_POWER
+  'SYSTEM_FOUNDRY:FORGE_MASTER': {
+    heroTitle: 'Titan DLI',
+    heroPillar: 'DLICOM_HERO_POWER',
+    heroConcept: 'Original Dlicom heavy strength hero wielding consensus forge wrench',
+  },
+  'SYSTEM_FOUNDRY:INFRA_OVERSEER': {
+    heroTitle: 'Constructor DLI',
+    heroPillar: 'DLICOM_HERO_POWER',
+    heroConcept: 'Original Dlicom infrastructure architect hero with node synchronization rig',
+  },
+  'SYSTEM_FOUNDRY:NEXUS_CONSTRUCTOR': {
+    heroTitle: 'Colossus DLI',
+    heroPillar: 'DLICOM_HERO_POWER',
+    heroConcept: 'Original Dlicom orbital assembly hero connecting decentralized shard cores',
+  },
+
+  // 4. NEXUS_SYNDICATE -> DLICOM_HERO_MOTION
+  'NEXUS_SYNDICATE:ENVOY_PRIME': {
+    heroTitle: 'Web DLI',
+    heroPillar: 'DLICOM_HERO_MOTION',
+    heroConcept: 'Original Dlicom agile network hero weaving global community connections',
+  },
+  'NEXUS_SYNDICATE:HERALD_VOYAGER': {
+    heroTitle: 'Beacon DLI',
+    heroPillar: 'DLICOM_HERO_MOTION',
+    heroConcept: 'Original Dlicom consensus herald hero raising high-gain community beacons',
+  },
+  'NEXUS_SYNDICATE:CONSUL_STEWARD': {
+    heroTitle: 'Nexus DLI',
+    heroPillar: 'DLICOM_HERO_MOTION',
+    heroConcept: 'Original Dlicom harmonic ecosystem hero holding the global telepresence sphere',
+  },
+
+  // 5. CHRONO_RESEARCH -> DLICOM_HERO_SPECIAL
+  'CHRONO_RESEARCH:STATE_ANALYST': {
+    heroTitle: 'Mystic DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom temporal state analyst hero decoding multi-dimensional math proofs',
+  },
+  'CHRONO_RESEARCH:QUANT_THEORIST': {
+    heroTitle: 'Chronos DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom high-density cryptographic lemma researcher',
+  },
+  'CHRONO_RESEARCH:CRYPTIC_CHRONICLER': {
+    heroTitle: 'Oracle DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom historical state archivist with refractive crystal stylus',
+  },
+
+  // 6. CREATIVE_STUDIO -> DLICOM_HERO_SPECIAL
+  'CREATIVE_STUDIO:PRISM_ILLUSTRATOR': {
+    heroTitle: 'Prism DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom holographic light-weaver hero sculpting 3D digital art',
+  },
+  'CREATIVE_STUDIO:SCULPTOR_NEO': {
+    heroTitle: 'Chroma DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom volumetric creator hero forging neon dimensions',
+  },
+  'CREATIVE_STUDIO:HOLO_VISIONARY': {
+    heroTitle: 'Vivid DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom spatial design visionary channeling ambient starlight',
+  },
+
+  // 7. FRONTIER_EXPEDITION -> DLICOM_HERO_SPECIAL
+  'FRONTIER_EXPEDITION:FRONTIER_PIONEER': {
+    heroTitle: 'Cosmic DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom interstellar explorer hero with celestial waypoint compass',
+  },
+  'FRONTIER_EXPEDITION:ORBITAL_VOYAGER': {
+    heroTitle: 'Astro DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom high-altitude recon hero planting decentralized beacons',
+  },
+  'FRONTIER_EXPEDITION:ASTRO_PATHFINDER': {
+    heroTitle: 'Pathfinder DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom uncharted terrain scout hero with autonomous telemetry drones',
+  },
+
+  // 8. DEFI_QUANT -> DLICOM_HERO_POWER
+  'DEFI_QUANT:LIQUIDITY_NAVIGATOR': {
+    heroTitle: 'Flame DLI',
+    heroPillar: 'DLICOM_HERO_POWER',
+    heroConcept: 'Original Dlicom high-velocity energy hero commanding liquid AMM pools',
+  },
+  'DEFI_QUANT:YIELD_TACTICIAN': {
+    heroTitle: 'Vector DLI',
+    heroPillar: 'DLICOM_HERO_POWER',
+    heroConcept: 'Original Dlicom multi-hop quantitative strategist with dynamic liquidity bands',
+  },
+  'DEFI_QUANT:ARBITRAGE_SEEKER': {
+    heroTitle: 'Speed DLI',
+    heroPillar: 'DLICOM_HERO_POWER',
+    heroConcept: 'Original Dlicom sub-millisecond velocity hero with mempool targeting optics',
+  },
+
+  // 9. ZERO_KNOWLEDGE -> DLICOM_HERO_MOTION
+  'ZERO_KNOWLEDGE:ZK_PROVER': {
+    heroTitle: 'Cipher DLI',
+    heroPillar: 'DLICOM_HERO_MOTION',
+    heroConcept: 'Original Dlicom verifiable computation hero with recursive SNARK ribbons',
+  },
+  'ZERO_KNOWLEDGE:SNARK_VERIFIER': {
+    heroTitle: 'Phantom DLI',
+    heroPillar: 'DLICOM_HERO_MOTION',
+    heroConcept: 'Original Dlicom constant-time verification hero illuminating valid proofs',
+  },
+  'ZERO_KNOWLEDGE:SHADOW_CRYPTOR': {
+    heroTitle: 'Shadow DLI',
+    heroPillar: 'DLICOM_HERO_MOTION',
+    heroConcept: 'Original Dlicom cryptographic privacy hero dissolving metadata leaks',
+  },
+
+  // 10. GAMEFI_ARCADE -> DLICOM_HERO_SPECIAL
+  'GAMEFI_ARCADE:META_DUELIST': {
+    heroTitle: 'Arcade DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom virtual arena champion wielding interactive game blades',
+  },
+  'GAMEFI_ARCADE:CYBER_CHAMPION': {
+    heroTitle: 'Duelist DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom esports victor hoisting golden on-chain trophies',
+  },
+  'GAMEFI_ARCADE:ARCADE_RONIN': {
+    heroTitle: 'Pixel DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom retro 8-bit warrior with pixelated energy katana',
+  },
+
+  // 11. AI_SYNTHESIS -> DLICOM_HERO_SPECIAL
+  'AI_SYNTHESIS:SYNTHETIC_ORACLE': {
+    heroTitle: 'Neural DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom transcendent DeAI agent hero with synaptic core sphere',
+  },
+  'AI_SYNTHESIS:NEURAL_ARCHON': {
+    heroTitle: 'Genesis DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom autonomous swarm commander directing decentralized models',
+  },
+  'AI_SYNTHESIS:CYBER_COGITATOR': {
+    heroTitle: 'Tensor DLI',
+    heroPillar: 'DLICOM_HERO_SPECIAL',
+    heroConcept: 'Original Dlicom overclocked tensor core hero fine-tuning on-chain intelligence',
+  },
+
+  // 12. DAO_GOVERNANCE -> DLICOM_HERO_CORE
+  'DAO_GOVERNANCE:CIVIC_ARCHON': {
+    heroTitle: 'Sovereign DLI',
+    heroPillar: 'DLICOM_HERO_CORE',
+    heroConcept: 'Original Dlicom on-chain consensus leader raising the quorum scepter',
+  },
+  'DAO_GOVERNANCE:TREASURY_STEWARD': {
+    heroTitle: 'Aegis-Vault DLI',
+    heroPillar: 'DLICOM_HERO_CORE',
+    heroConcept: 'Original Dlicom multi-sig treasury guardian with cryptographic timelocks',
+  },
+  'DAO_GOVERNANCE:CONSTITUTIONALIST': {
+    heroTitle: 'Tribune DLI',
+    heroPillar: 'DLICOM_HERO_CORE',
+    heroConcept: 'Original Dlicom decentralized magistrate unfurling smart contract bylaws',
+  },
+};
+
+/**
+ * Returns the Dlicom Hero presentation data for a family and variant.
+ */
+export function getDlicomHeroPresentation(familyId: MascotFamilyId, variantId: string): {
+  heroTitle: string;
+  heroPillar: DlicomHeroPillar;
+  heroConcept: string;
+} {
+  return DLICOM_HERO_CATALOG[`${familyId}:${variantId}`] || {
+    heroTitle: 'Hero DLI',
+    heroPillar: 'DLICOM_HERO_CORE',
+    heroConcept: 'Original Dlicom collectible superhero variant',
+  };
+}
+
+/**
  * The 12 Authentic Mascot Families with 3 distinct visual variants each (36 total characters).
  * Base variant 1 for original archetypes maps to their established assets for backwards compatibility.
  */
@@ -1403,6 +1637,16 @@ export const MASCOT_FAMILY_REGISTRY: Record<MascotFamilyId, MascotFamilyDefiniti
   },
 };
 
+// Enrich MASCOT_FAMILY_REGISTRY variants with original Dlicom Hero presentation
+for (const fam of Object.values(MASCOT_FAMILY_REGISTRY)) {
+  for (const v of fam.variants) {
+    const hero = getDlicomHeroPresentation(fam.familyId, v.variantId);
+    v.heroTitle = hero.heroTitle;
+    v.heroPillar = hero.heroPillar;
+    v.heroConcept = hero.heroConcept;
+  }
+}
+
 /**
  * Derives the authentic Mascot Family deterministically from archetype, signals, or confirmed focus.
  */
@@ -1543,6 +1787,8 @@ export function generateMascotVariant(
       ? `Synthesized deterministically from user-confirmed focus "${inferredFocus}" (X rate-limit fallback; zero invented data). Seed: ${hexSeed}.`
       : `Derived deterministically from public X bio signals [${detectedKeywords.join(', ') || 'public explorer'}] for @${cleanUsername}. Seed: ${hexSeed}.`;
 
+  const heroData = getDlicomHeroPresentation(familyDef.familyId, visualVariant.variantId);
+
   return {
     mascotId,
     username: cleanUsername,
@@ -1553,6 +1799,9 @@ export function generateMascotVariant(
     familyName: familyDef.familyName,
     variantId: visualVariant.variantId,
     variantName: visualVariant.variantName,
+    heroTitle: heroData.heroTitle,
+    heroPillar: heroData.heroPillar,
+    heroConcept: heroData.heroConcept,
     title: `${def.badgePrefix} #${(seed % 9999).toString().padStart(4, '0')}`,
     badgeName: def.badgePrefix,
     visual: {

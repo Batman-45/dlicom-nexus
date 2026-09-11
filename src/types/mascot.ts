@@ -32,6 +32,12 @@ export type MascotFamilyId =
   | 'AI_SYNTHESIS'
   | 'DAO_GOVERNANCE';
 
+export type DlicomHeroPillar =
+  | 'DLICOM_HERO_CORE'
+  | 'DLICOM_HERO_POWER'
+  | 'DLICOM_HERO_MOTION'
+  | 'DLICOM_HERO_SPECIAL';
+
 export interface MascotColorTheme {
   primary: string;
   secondary: string;
@@ -47,6 +53,9 @@ export interface MascotVisualVariantInfo {
   variantName: string;
   variantBadge: string;
   characterImage: string;
+  heroTitle?: string;
+  heroPillar?: DlicomHeroPillar;
+  heroConcept?: string;
   outfit: string;
   equipment: string;
   accessory: string;
@@ -111,6 +120,9 @@ export interface MascotVariant {
   familyName: string;
   variantId: string;
   variantName: string;
+  heroTitle: string;
+  heroPillar: DlicomHeroPillar;
+  heroConcept: string;
   title: string;
   badgeName: string;
   visual: MascotVisualAttributes;

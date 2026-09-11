@@ -67,16 +67,21 @@ export const MascotCard: React.FC<MascotCardProps> = ({ mascot, onReset, classNa
                   color: colorTheme.text,
                 }}
               >
-                Dlicom Collectible Character
+                Dlicom Hero • {mascot.heroPillar ? mascot.heroPillar.replace('DLICOM_HERO_', '') : 'CORE'}
               </span>
               <span className="text-xs font-mono px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10">
                 {mascotId}
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              {title}
-            </h1>
+            <div className="space-y-0.5">
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                {mascot.heroTitle || title}
+              </h1>
+              <p className="text-xs font-mono text-purple-300 font-semibold">
+                Hero Variant: {mascot.variantName} ({mascot.familyName})
+              </p>
+            </div>
 
             <div className="flex items-center gap-2 text-sm text-slate-300">
               <span className="text-white font-semibold">{displayName}</span>
