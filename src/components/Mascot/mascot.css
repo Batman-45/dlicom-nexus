@@ -377,3 +377,26 @@
   transform: translateY(-4px);
   box-shadow: 0 20px 40px -12px rgba(168, 85, 247, 0.2);
 }
+
+/* ========================================================================= */
+/* HERO SHARE CARD COLLECTIBLE STYLING                                       */
+/* ========================================================================= */
+
+.hero-share-card {
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.hero-share-card:hover {
+  transform: translateY(-2px);
+}
+
+.hero-share-card-stage {
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.7) inset, 0 0 24px rgba(168, 85, 247, 0.1);
+}
+
+@media (max-width: 640px) {
+  .hero-share-card {
+    border-radius: 1.25rem !important;
+  }
+}

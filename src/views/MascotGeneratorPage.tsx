@@ -9,6 +9,7 @@ import {
 import { MascotNavbar } from '../components/Mascot/MascotNavbar';
 import { MascotVisual } from '../components/Mascot/MascotVisual';
 import { ExportActions } from '../components/Mascot/ExportActions';
+import { HeroShareCard } from '../components/Mascot/HeroShareCard';
 import { generateMascotVariant, getWhyThisMascotExplanation } from '../services/mascot/mascotEngine';
 import { fetchPublicXSignals, validateUsername } from '../services/mascot/xProfileService';
 import type { MascotVariant, GenerationStep } from '../types/mascot';
@@ -580,6 +581,19 @@ export const MascotGeneratorPage: React.FC<MascotGeneratorPageProps> = ({
                 >
                   {getWhyThisMascotExplanation(generatedMascot)}
                 </p>
+              </div>
+
+              {/* Official Dlicom Hero Share Card */}
+              <div className="w-full pt-4 space-y-3">
+                <div className="text-center space-y-1">
+                  <span className="text-[11px] font-mono uppercase tracking-widest text-purple-400 font-bold">
+                    Collectible Hero Share Card
+                  </span>
+                  <p className="text-xs text-slate-400">
+                    Export your verified collectible card or share directly to X.
+                  </p>
+                </div>
+                <HeroShareCard mascot={generatedMascot} />
               </div>
 
               {/* Actions Bar: Share to X, Copy Link, Download PNG, Export SVG, Generate Another */}

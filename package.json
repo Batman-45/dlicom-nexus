@@ -10,6 +10,7 @@
     "lint": "oxlint",
     "verify:mascot-generator": "node --experimental-strip-types scripts/verify-mascot-generator.js",
     "verify:mascot-ui": "node scripts/verify-mascot-ui.js",
+    "verify:hero-sharing": "node --experimental-strip-types scripts/verify-hero-sharing.js",
     "verify:qa-superheroes": "node scripts/qa-superhero-profiles.js",
     "verify:all": "node scripts/verify-all.js",
     "audit:security": "node scripts/audit-bundle.js",

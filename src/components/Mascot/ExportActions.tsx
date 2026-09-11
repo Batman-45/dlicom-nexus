@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { Download, Copy, Check, Image as ImageIcon, RefreshCw } from 'lucide-react';
 import type { MascotVariant } from '../../types/mascot';
 
+import {
+  exportHeroShareCardAsPng,
+  getHeroShareUrl,
+  getHeroXShareIntentUrl,
+} from '../../services/mascot/heroCardExport';
+
 interface ExportActionsProps {
   mascot: MascotVariant;
   className?: string;
@@ -15,18 +21,31 @@ export const ExportActions: React.FC<ExportActionsProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [downloadingPng, setDownloadingPng] = useState(false);
-  const { username, archetypeLabel, mascotId, title } = mascot;
-
-  const shareUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/mascot/${username}`
-      : `https://dlicom.io/mascot/${username}`;
-
-  const shareText = `Meet my Dlicom Mascot: ${title} (${archetypeLabel})! ID: ${mascotId} ⚡️ Generated deterministically on Dlicom. Create yours:`;
+  const { username, mascotId } = mascot;
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      const shareUrl = getHeroShareUrl(username);
+      let copiedSuccess = false;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          copiedSuccess = true;
+        } catch {
+          // Fallback if document is unfocused
+        }
+      }
+
+      if (!copiedSuccess) {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
@@ -35,31 +54,34 @@ export const ExportActions: React.FC<ExportActionsProps> = ({
   };
 
   const handleShareTwitter = () => {
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      shareText
-    )}&url=${encodeURIComponent(shareUrl)}`;
+    const tweetUrl = getHeroXShareIntentUrl(mascot);
     window.open(tweetUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleDownloadPng = async () => {
     try {
       setDownloadingPng(true);
-      const res = await fetch(mascot.visual.characterImage);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `dlicom-mascot-${username}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await exportHeroShareCardAsPng(mascot);
     } catch {
-      const a = document.createElement('a');
-      a.href = mascot.visual.characterImage;
-      a.download = `dlicom-mascot-${username}.png`;
-      a.target = '_blank';
-      a.click();
+      // Fallback to direct character image download
+      try {
+        const res = await fetch(mascot.visual.characterImage);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dlicom-hero-${username}-${mascot.mascotId.toLowerCase()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch {
+        const a = document.createElement('a');
+        a.href = mascot.visual.characterImage;
+        a.download = `dlicom-hero-${username}-${mascot.mascotId.toLowerCase()}.png`;
+        a.target = '_blank';
+        a.click();
+      }
     } finally {
       setDownloadingPng(false);
     }

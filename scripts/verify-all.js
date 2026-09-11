@@ -87,7 +87,10 @@ async function main() {
     // 2. Phase 1 Mascot UI Audit
     results.push(runStep('Phase 1: Mascot Generator UI & Theme Contrast Audit', 'node', ['scripts/verify-mascot-ui.js']));
 
-    // 3. Official Superhero Mascot Visual QA Suite
+    // 3. Phase 2 Dlicom Hero Share Card, Export & Social Sharing Suite
+    results.push(runStep('Phase 2: Dlicom Hero Share Card, Export & Social Sharing Suite', 'npm', ['run', 'verify:hero-sharing']));
+
+    // 4. Official Superhero Mascot Visual QA Suite
     results.push(runStep('Superhero Profiles Visual QA & Navigation Suite', 'node', ['scripts/qa-superhero-profiles.js']));
 
     // 4. Strict TypeScript Compilation Check
